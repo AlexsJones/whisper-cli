@@ -13,10 +13,6 @@ if(RUN_TESTS)
   execute_process(COMMAND ./test/run_tests)
 endif()
 
-if(DEBUG)
-  add_definitions("-g")
-endif()
-
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   set (CMAKE_CXX_FLAGS "-Wno-pointer-sign")
 endif()
@@ -25,16 +21,16 @@ file(GLOB SRC "src/**/*.c")
 include_directories(src)
 include_directories("whisper-core/whisper-core")
 
-if(!DEBUG)
+if(NOT DEBUG)
   add_executable(whisper-cli ${SRC})
-target_link_libraries(whisper-cli -ljnxc -lcrypto -lssl -g -lprotobuf-c
-  -lncurses -lpthread -lwhisper-core)
+  target_link_libraries(whisper-cli -ljnxc -lcrypto -lssl -g -lprotobuf-c
+    -lncurses -lpthread -lwhisper-core)
 else()
-  #In debug mode we build and link against whisper-core directly for debugging
+  add_definitions("-g")
   file(GLOB CORE_SRC "whisper-core/src/**/*.c")
   add_executable(whisper-cli ${SRC} ${CORE_SRC})
-target_link_libraries(whisper-cli -ljnxc -lcrypto -lssl -g -lprotobuf-c
-  -lncurses -lpthread)
+  target_link_libraries(whisper-cli -ljnxc -lcrypto -lssl -g -lprotobuf-c
+    -lncurses -lpthread)
 endif()
 
 install(TARGETS whisper-cli DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
