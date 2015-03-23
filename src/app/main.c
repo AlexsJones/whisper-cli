@@ -39,6 +39,14 @@ jnx_hashmap *load_config(int argc, char **argv) {
       line. Pass it using --config=PATH_TO_CONFIG_FILE command line option.");
   exit (1);
 }
+int session_auth_comm(session *s, void *optarg) {
+  app_context_t *context = optarg;
+
+  auth_comms_initiator_start(context->auth_comms,
+      context->discovery,s,"6666");
+
+  return 0;
+}
 int run_app(app_context_t *context) {
   char command[CMDLEN];
   char *broadcast, *local;
@@ -84,7 +92,9 @@ int run_app(app_context_t *context) {
           /* create session */
           session_service_create_session(context->session_serv,&s);
           /* link our peers to our session information */
-          session_service_link_sessions(context->session_serv,&s->session_guid,
+          session_service_link_sessions(context->session_serv,
+              session_auth_comm,context, 
+              &s->session_guid,
               local_peer,remote_peer);
 
           /* async handshake */
