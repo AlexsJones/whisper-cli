@@ -97,8 +97,6 @@ int run_app(app_context_t *context) {
               &s->session_guid,
               local_peer,remote_peer);
 
-          /* async handshake */
-          app_initiate_handshake(context,s);
           while (s->secure_comms_fd == 0) {
             sleep(1);
           }
