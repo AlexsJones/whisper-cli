@@ -42,8 +42,14 @@ jnx_hashmap *load_config(int argc, char **argv) {
 int session_auth_comm(session *s, void *optarg) {
   app_context_t *context = optarg;
 
+  jnx_char *default_secure_comms = "6666";
+  jnx_char *secure_comms_port = (jnx_char*)jnx_hash_get(context->config,
+      "SECURE_COMMS_PORT");
+  if(secure_comms_port != NULL) {
+    default_secure_comms = secure_comms_port;
+  }
   auth_comms_initiator_start(context->auth_comms,
-      context->discovery,s,"6666");
+      context->discovery,s,default_secure_comms);
 
   return 0;
 }
