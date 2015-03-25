@@ -39,6 +39,21 @@ jnx_hashmap *load_config(int argc, char **argv) {
       line. Pass it using --config=PATH_TO_CONFIG_FILE command line option.");
   exit (1);
 }
+int session_auth_comm(session *s, void *optarg) {
+  app_context_t *context = optarg;
+
+  jnx_char *default_secure_comms = "6666";
+  jnx_char *secure_comms_port = (jnx_char*)jnx_hash_get(context->config,
+      "SECURE_COMMS_PORT");
+  if(secure_comms_port != NULL) {
+    default_secure_comms = secure_comms_port;
+  }
+  printf("Auth initiator start\n");
+  auth_comms_initiator_start(context->auth_comms,
+      context->discovery,s,default_secure_comms);
+  printf("Auth initiator done\n");
+  return 0;
+}
 int run_app(app_context_t *context) {
   char command[CMDLEN];
   char *broadcast, *local;
@@ -84,14 +99,12 @@ int run_app(app_context_t *context) {
           /* create session */
           session_service_create_session(context->session_serv,&s);
           /* link our peers to our session information */
-          session_service_link_sessions(context->session_serv,&s->session_guid,
+          session_service_link_sessions(context->session_serv,
+              session_auth_comm,context, 
+              &s->session_guid,
               local_peer,remote_peer);
 
-          /* async handshake */
-          app_initiate_handshake(context,s);
-          while (s->secure_comms_fd == 0) {
-            sleep(1);
-          }
+          printf("Session link hit\n");
           app_create_gui_session(s,context->session_serv);
           printf("Exiting GUI from session.\n");
         }else {
