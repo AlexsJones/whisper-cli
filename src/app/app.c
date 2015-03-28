@@ -342,12 +342,9 @@ session *app_accept_chat(app_context_t *context) {
   jnx_unix_socket_destroy(&us);
 
   session *osession = NULL;
-  while (SESSION_STATE_NOT_FOUND 
-      == session_service_fetch_session(context->session_serv,
-            &session_guid, &osession)) {
-    sleep(1);
-  }
-  while (osession->secure_comms_fd == 0) {
+  int is_linked = session_service_session_is_linked(context->session_serv,
+      &session_guid);
+  while (!is_linked) { 
     sleep(1);
   }
   return osession;
