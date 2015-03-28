@@ -50,7 +50,7 @@ int link_session_protocol(session *s, void *optarg) {
   }
   printf("Auth initiator start\n");
   auth_comms_initiator_start(context->auth_comms,
-      context->discovery,s,default_secure_comms);
+      context->discovery,s,context->session_serv,default_secure_comms);
   printf("Auth initiator done\n");
   return 0;
 }
@@ -110,9 +110,9 @@ int run_app(app_context_t *context) {
 
           printf("Session link hit\n");
           
-          app_create_gui_session(s,context->session_serv);
-          printf("Exiting GUI from session.\n");
-        
+          
+          session_message_write(s,"yooyoy");
+
           session_state r = session_service_unlink_sessions(context->session_serv,
           unlink_session_protocol,
           NULL,
