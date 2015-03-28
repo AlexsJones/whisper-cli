@@ -109,9 +109,9 @@ int run_app(app_context_t *context) {
               local_peer,remote_peer);
 
           printf("Session link hit\n");
+          
           app_create_gui_session(s,context->session_serv);
           printf("Exiting GUI from session.\n");
-        
         
           session_state r = session_service_unlink_sessions(context->session_serv,
           unlink_session_protocol,

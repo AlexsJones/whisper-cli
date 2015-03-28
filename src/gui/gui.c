@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include "gui.h"
 #include <string.h>
+#include <jnxc_headers/jnxthread.h>
 #include <pthread.h>
 #define COL_LOGO   1
 #define COL_LOCAL  2
@@ -144,6 +145,18 @@ void *read_loop(void *data) {
   gui_destroy(context);
   return NULL;
 }
+void *remote_loop(void *data) {
+  gui_context_t *context = (gui_context_t *) data;
+  while(context->s->is_connected) {
+    jnx_char *omessage = NULL;
+    jnx_int read = session_message_read(context->s,
+        &omessage);  
+    if(omessage) {
+      display_remote_message(context,omessage);
+    }
+  }
+  return NULL;
+}
 void gui_receive_message(void *gc, jnx_guid *session_guid, jnx_char *message) {
   gui_context_t *c = (gui_context_t *) gc;
   if (!c->is_active) {
@@ -156,3 +169,8 @@ void gui_receive_message(void *gc, jnx_guid *session_guid, jnx_char *message) {
     display_alert_message(c, message);
   }
 }
+void *read_remote_data_bootstrap(void* data) {
+  jnx_thread_create_disposable(remote_loop,data);
+  return NULL;
+}
+

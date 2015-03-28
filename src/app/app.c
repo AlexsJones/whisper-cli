@@ -104,6 +104,7 @@ void app_create_gui_session(session *s,
   gui_context_t *c = gui_create(s,serv);
   pair_session_with_gui(s, (void *)c);
   read_loop((void *)c);
+  read_remote_data_bootstrap((void*)c);
   unpair_session_from_gui(s, (void *)c);
 }
 int is_equivalent(char *command, char *expected) {
