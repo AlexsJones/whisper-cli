@@ -283,8 +283,28 @@ peer *app_peer_from_input(app_context_t *context, char *param) {
   }
   return NULL;
 }
+int link_session_protocol(session *s, void *optarg) {
+  app_context_t *context = optarg;
+
+  jnx_char *default_secure_comms = "6666";
+  jnx_char *secure_comms_port = (jnx_char*)jnx_hash_get(context->config,
+      "SECURE_COMMS_PORT");
+  if(secure_comms_port != NULL) {
+    default_secure_comms = secure_comms_port;
+  }
+  printf("Auth initiator start\n");
+  auth_comms_initiator_start(context->auth_comms,
+      context->discovery,s,default_secure_comms);
+  printf("Auth initiator done\n");
+  return 0;
+}
+int unlink_session_protocol(session *s, void *optargs) {
+
+  return 0;
+}
 void set_up_session_service(app_context_t *context){
-  context->session_serv = session_service_create();
+  context->session_serv = session_service_create(link_session_protocol,
+    unlink_session_protocol);
 }
 void set_up_auth_comms(app_context_t *context) {
   context->auth_comms = auth_comms_create();
