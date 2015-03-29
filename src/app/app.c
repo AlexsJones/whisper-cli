@@ -290,7 +290,7 @@ int link_session_protocol(session *s, jnx_int is_initiator,void *optarg) {
    */
   switch(is_initiator) {
     case 1:
-      JNX_LOG(NULL,"Link session protocol for initiator");
+      printf("Link session protocol for initiator");
       app_context_t *context = optarg;
       jnx_char *default_secure_comms = "6666";
       jnx_char *secure_comms_port = (jnx_char*)jnx_hash_get(context->config,
@@ -304,7 +304,7 @@ int link_session_protocol(session *s, jnx_int is_initiator,void *optarg) {
       printf("Auth initiator done\n");
       break;
     case 0:
-      JNX_LOG(NULL,"Link session for receiver");
+      printf("Link session for receiver");
       break;
 
   }
