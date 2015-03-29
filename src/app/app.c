@@ -284,6 +284,7 @@ peer *app_peer_from_input(app_context_t *context, char *param) {
   return NULL;
 }
 int link_session_protocol(session *s, void *optarg) {
+  printf("---------- link session protocol ------------- \n");
   app_context_t *context = optarg;
 
   jnx_char *default_secure_comms = "6666";
