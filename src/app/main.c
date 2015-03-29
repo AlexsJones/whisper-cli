@@ -90,9 +90,8 @@ int run_app(app_context_t *context) {
               local_peer,remote_peer);
 
           printf("Session link hit\n");
-          
-          
-          session_message_write(s,"yooyoy");
+         
+          sleep(10);
 
           session_state r = session_service_unlink_sessions(context->session_serv,
           NULL,
