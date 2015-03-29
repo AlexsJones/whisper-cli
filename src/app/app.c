@@ -21,7 +21,7 @@
 #include <jnxc_headers/jnxterm.h>
 #include <jnxc_headers/jnxthread.h>
 #include <jnxc_headers/jnx_tcp_socket.h>
- #include <jnxc_headers/jnx_udp_socket.h>
+#include <jnxc_headers/jnx_udp_socket.h>
 #include "app.h"
 #include "../gui/gui.h"
 #include "auth_comms.h"
@@ -283,37 +283,49 @@ peer *app_peer_from_input(app_context_t *context, char *param) {
   }
   return NULL;
 }
-int link_session_protocol(session *s, void *optarg) {
+int link_session_protocol(session *s, jnx_int is_initiator,void *optarg) {
   printf("---------- link session protocol ------------- \n");
-  app_context_t *context = optarg;
+  /* both the receiving session link and sender will go through here,
+   * it is necessary to differentiate 
+   */
+  switch(is_initiator) {
+    case 1:
+      JNX_LOG(NULL,"Link session protocol for initiator");
+      app_context_t *context = optarg;
+      jnx_char *default_secure_comms = "6666";
+      jnx_char *secure_comms_port = (jnx_char*)jnx_hash_get(context->config,
+          "SECURE_COMMS_PORT");
+      if(secure_comms_port != NULL) {
+        default_secure_comms = secure_comms_port;
+      }
+      printf("Auth initiator start\n");
+      auth_comms_initiator_start(context->auth_comms,
+          context->discovery,s,default_secure_comms);
+      printf("Auth initiator done\n");
+      break;
+    case 0:
+      JNX_LOG(NULL,"Link session for receiver");
+      break;
 
-  jnx_char *default_secure_comms = "6666";
-  jnx_char *secure_comms_port = (jnx_char*)jnx_hash_get(context->config,
-      "SECURE_COMMS_PORT");
-  if(secure_comms_port != NULL) {
-    default_secure_comms = secure_comms_port;
   }
-  printf("Auth initiator start\n");
-  auth_comms_initiator_start(context->auth_comms,
-      context->discovery,s,default_secure_comms);
-  printf("Auth initiator done\n");
   return 0;
 }
-int unlink_session_protocol(session *s, void *optargs) {
+int unlink_session_protocol(session *s,jnx_int is_initiator, void *optargs) {
 
   return 0;
 }
 void set_up_session_service(app_context_t *context){
   context->session_serv = session_service_create(link_session_protocol,
-    unlink_session_protocol);
+      unlink_session_protocol);
 }
 void set_up_auth_comms(app_context_t *context) {
   context->auth_comms = auth_comms_create();
   context->auth_comms->ar_callback = app_accept_or_reject_session;
   context->auth_comms->listener = jnx_socket_tcp_listener_create("9991",
-    AF_INET,15);
-  
-  auth_comms_listener_start(context->auth_comms,context->discovery,context->session_serv);
+      AF_INET,15);
+
+  auth_comms_listener_start(context->auth_comms,context->discovery,context->session_serv,
+      context);
 }
 app_context_t *app_create_context(jnx_hashmap *config) {
   app_context_t *context = calloc(1, sizeof(app_context_t));
