@@ -9,4 +9,5 @@
 
 [![Build Status](https://travis-ci.org/AlexsJones/whisper-core.svg?branch=master)](https://travis-ci.org/AlexsJones/whisper-core)
 
-Status: In active development, not ready for general consumption.
+This project is for building of command line whisper interface. 
+It builds on the whisper-core library.
