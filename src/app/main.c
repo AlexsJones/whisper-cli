@@ -17,7 +17,7 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
-#include "../err/whisper_errors.h"
+#include <whisper-core/whisper_errors.h>
 #include <jnxc_headers/jnxcheck.h>
 #include "app.h"
 
