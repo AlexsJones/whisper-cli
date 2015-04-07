@@ -224,7 +224,7 @@ static void set_up_discovery_service(app_context_t *context) {
   char *user_name = getenv("USER");
   if(user_name == NULL) {
     JNX_LOG(0,"[WARNING] Could not find system user name.");
-    user_name == (char*)jnx_hash_get(config,"USER_NAME");
+    user_name = (char*)jnx_hash_get(config,"USER_NAME");
   }
   if(user_name == NULL){
     JNX_LOG(0, "[ERROR] You must supply the user name in the configuration. Add USER_NAME=username line to the config file.");
