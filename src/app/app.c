@@ -24,7 +24,7 @@
  #include <jnxc_headers/jnx_udp_socket.h>
 #include "app.h"
 #include "../gui/gui.h"
-#include "../net/auth_comms.h"
+#include <whisper-core/auth_comms.h>
 
 #define END_LISTEN -1
 #define SESSION_INTERACTION "session_interaction"

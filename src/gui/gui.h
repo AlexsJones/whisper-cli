@@ -20,7 +20,7 @@
 
 #include <pthread.h>
 #include <ncurses.h>
-#include "../session/session.h"
+#include <whisper-core/session.h>
 
 typedef struct {
   WINDOW *prompt;
