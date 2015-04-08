@@ -22,9 +22,9 @@
 #include <jnxc_headers/jnxhash.h>
 #include <jnxc_headers/jnxvector.h>
 #include <jnxc_headers/jnxunixsocket.h>
-#include <whisper-core/discovery.h>
-#include <whisper-core/auth_comms.h>
-#include <whisper-core/session_service.h>
+#include "discovery.h"
+#include "auth_comms.h"
+#include "session_service.h"
 #define CMDLEN 64
 
 #define CMD_SESSION 1
