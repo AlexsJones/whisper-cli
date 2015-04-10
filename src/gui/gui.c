@@ -49,7 +49,7 @@ void display_logo() {
   attroff(COLOR_PAIR(COL_LOGO) | A_BOLD);
   refresh();
 }
-gui_context_t *gui_create(session *s) {
+gui_context_t *gui_create(session *s, session_service *serv) {
   gui_context_t *c = malloc(sizeof(gui_context_t));
   ui_t *ui = malloc(sizeof(ui_t));
   initscr();
@@ -58,7 +58,7 @@ gui_context_t *gui_create(session *s) {
   ui->screen = newwin(LINES - 6, COLS - 1, 1, 1);
   scrollok(ui->screen, TRUE);
   box(ui->screen, 0, 0);
-//  wborder(ui->screen, '|', '|', '-', '-', '+', '+', '+', '+');
+  //  wborder(ui->screen, '|', '|', '-', '-', '+', '+', '+', '+');
   ui->next_line = 1;
   wrefresh(ui->screen);
   ui->prompt = newwin(4, COLS - 1, LINES - 5, 1);
@@ -66,6 +66,7 @@ gui_context_t *gui_create(session *s) {
 
   c->ui = ui;
   c->s = s;
+  c->session_serv = serv;
   c->msg = NULL;
   c->is_active = 1;
   return c;
@@ -138,6 +139,14 @@ void *read_loop(void *data) {
   session_disconnect(context->s);
   gui_unpair_session(context);
   gui_destroy(context);
+
+  session_state r = session_service_unlink_sessions(context->session_serv,
+      &(*context).s->session_guid);
+  JNXCHECK(r == SESSION_STATE_OKAY);
+  JNXCHECK(session_service_session_is_linked(context->session_serv,
+        &(*context).s->session_guid) == 0);
+  session_service_destroy_session(context->session_serv,
+      &(*context).s->session_guid);
   return NULL;
 }
 void gui_receive_message(void *gc, jnx_guid *session_guid, jnx_char *message) {
