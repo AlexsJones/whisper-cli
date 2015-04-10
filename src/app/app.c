@@ -255,12 +255,6 @@ static void set_up_discovery_service(app_context_t *context) {
 
   context->discovery = discovery_service_create(port, AF_INET, broadcast_address, ps);
 
-  jnx_char buffer[38];
-  bzero(buffer,38);
-  sprintf(buffer,"%d",port);
-
-  context->discovery->udp_listener = jnx_socket_udp_listener_broadcast_create(buffer,AF_INET);
-
   char *discovery_strategy = (char *) jnx_hash_get(config, "DISCOVERY_STRATEGY");
   if (NULL == discovery_strategy) {
     JNX_LOG(0, "Starting discovery service with heartbeat srategy.");
