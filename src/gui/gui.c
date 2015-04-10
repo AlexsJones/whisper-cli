@@ -138,6 +138,11 @@ void *read_loop(void *data) {
   session_disconnect(context->s);
   gui_unpair_session(context);
   gui_destroy(context);
+  session_state r = session_service_unlink_sessions(context->s,
+      context->s->session_guid);
+  JNXCHECK(r == SESSION_STATE_OKAY);
+  JNXCHECK(session_service_session_is_linked(context->s,
+        context->s->session_guid) == 0);
   return NULL;
 }
 void gui_receive_message(void *gc, jnx_guid *session_guid, jnx_char *message) {
