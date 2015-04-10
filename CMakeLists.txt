@@ -26,6 +26,7 @@ if(NOT DEBUG)
   target_link_libraries(whisper-cli -ljnxc -lcrypto -lssl -g -lprotobuf-c
     -lncurses -lpthread -lwhisper-core)
 else()
+  message("Making debug")
   add_definitions("-g")
   file(GLOB CORE_SRC "whisper-core/src/**/*.c")
   add_executable(whisper-cli ${SRC} ${CORE_SRC})

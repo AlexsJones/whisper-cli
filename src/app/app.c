@@ -99,8 +99,9 @@ void unpair_session_from_gui(session *s, void *gui_context) {
   s->gui_context = NULL;
   s->session_callback = NULL;
 }
-void app_create_gui_session(session *s) {
-  gui_context_t *c = gui_create(s);
+void app_create_gui_session(session *s,
+    session_service *serv) {
+  gui_context_t *c = gui_create(s,serv);
   pair_session_with_gui(s, (void *)c);
   read_loop((void *)c);
   unpair_session_from_gui(s, (void *)c);

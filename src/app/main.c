@@ -56,7 +56,7 @@ int run_app(app_context_t *context) {
     switch(app_code_for_command_with_param(cmd_string,read_bytes,&param)) {
       case CMD_ACCEPT_SESSION:
         osession = app_accept_chat(context);
-        app_create_gui_session(osession);
+        app_create_gui_session(osession,context->session_serv);
         printf("Exiting GUI from accept.\n");
         break;
       case CMD_REJECT_SESSION:
@@ -92,7 +92,7 @@ int run_app(app_context_t *context) {
           while (s->secure_comms_fd == 0) {
             sleep(1);
           }
-          app_create_gui_session(s);
+          app_create_gui_session(s,context->session_serv);
           printf("Exiting GUI from session.\n");
         }else {
           printf("Session could not be started.\nDid you spell your target%s",
