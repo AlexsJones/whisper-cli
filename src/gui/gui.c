@@ -145,7 +145,6 @@ void *read_loop(void *data) {
   JNXCHECK(r == SESSION_STATE_OKAY);
   JNXCHECK(session_service_session_is_linked(context->session_serv,
         &(*context).s->session_guid) == 0);
-
   session_service_destroy_session(context->session_serv,
       &(*context).s->session_guid);
   return NULL;
