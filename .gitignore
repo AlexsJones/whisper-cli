@@ -14,3 +14,4 @@ core
 seg_wrapper.sh
 *.pb-c.c
 *.pb-c.h
+.idea
