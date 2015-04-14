@@ -48,9 +48,10 @@ int session_auth_comm(session *s, void *optarg) {
   if(secure_comms_port != NULL) {
     default_secure_comms = secure_comms_port;
   }
+  printf("Auth initiator start\n");
   auth_comms_initiator_start(context->auth_comms,
       context->discovery,s,default_secure_comms);
-
+  printf("Auth initiator done\n");
   return 0;
 }
 int run_app(app_context_t *context) {
@@ -103,9 +104,7 @@ int run_app(app_context_t *context) {
               &s->session_guid,
               local_peer,remote_peer);
 
-          while (s->secure_comms_fd == 0) {
-            sleep(1);
-          }
+          printf("Session link hit\n");
           app_create_gui_session(s,context->session_serv);
           printf("Exiting GUI from session.\n");
         }else {
