@@ -122,10 +122,6 @@ void display_alert_message(gui_context_t *c, char *msg) {
 static void gui_unpair_session(gui_context_t *c) {
   c->s->session_callback = NULL;
 }
-static int unlink_session_protocol(session *s, void *optargs) {
-
-  return 0;
-}
 void *read_loop(void *data) {
   gui_context_t *context = (gui_context_t *) data;
   while(TRUE) {
@@ -140,19 +136,6 @@ void *read_loop(void *data) {
       }
     }
   }
-
-  session_disconnect(context->s);
-  session_state r = session_service_unlink_sessions(context->session_serv,
-      unlink_session_protocol,
-      NULL,
-      &(*context).s->session_guid);
-  
-  JNXCHECK(r == SESSION_STATE_OKAY);
-  JNXCHECK(session_service_session_is_linked(context->session_serv,
-        &(*context).s->session_guid) == 0);
-  session_service_destroy_session(context->session_serv,
-      &(*context).s->session_guid);
-  
   gui_unpair_session(context);
   gui_destroy(context);
   return NULL;

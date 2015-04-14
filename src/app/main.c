@@ -54,6 +54,10 @@ int session_auth_comm(session *s, void *optarg) {
   printf("Auth initiator done\n");
   return 0;
 }
+int unlink_session_protocol(session *s, void *optargs) {
+
+  return 0;
+}
 int run_app(app_context_t *context) {
   char command[CMDLEN];
   char *broadcast, *local;
@@ -107,6 +111,19 @@ int run_app(app_context_t *context) {
           printf("Session link hit\n");
           app_create_gui_session(s,context->session_serv);
           printf("Exiting GUI from session.\n");
+        
+        
+          session_state r = session_service_unlink_sessions(context->session_serv,
+          unlink_session_protocol,
+          NULL,
+          &(*s).session_guid);
+  
+          JNXCHECK(r == SESSION_STATE_OKAY);
+          JNXCHECK(session_service_session_is_linked(context->session_serv,
+          &(*s).session_guid) == 0);
+          session_service_destroy_session(context->session_serv,
+          &(*s).session_guid);
+        
         }else {
           printf("Session could not be started.\nDid you spell your target%s",
               " username correctly?\n");
