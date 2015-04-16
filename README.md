@@ -7,7 +7,6 @@
 ---
 ##For Developers
 
-[![Build Status](https://travis-ci.org/AlexsJones/whisper-core.svg?branch=master)](https://travis-ci.org/AlexsJones/whisper-core)
 
 This project is for building of command line whisper interface. 
 It builds on the whisper-core library.
