@@ -81,8 +81,8 @@ int app_accept_or_reject_session(discovery_service *ds,
   peer *p = peerstore_lookup(ds->peers, initiator_guid);
   printf("You have a chat request from %s. %s",
       p->user_name, "Would you like to accept or reject the chat? [a/r]: ");
-  fflush(stdout);
   accept_reject_dto ar;
+  fflush(stdout);
   ar.session_guid = session_guid;
   jnx_unix_stream_socket_listen_with_context(
       s, 1, user_accept_reject, (void *) &ar);
@@ -222,14 +222,10 @@ extern int peer_update_interval;
 
 static void set_up_discovery_service(app_context_t *context) {
   jnx_hashmap *config = context->config;
-  char *user_name = getenv("USER");
-  if(user_name == NULL) {
-    JNX_LOG(0,"[WARNING] Could not find system user name.");
-    user_name = (char*)jnx_hash_get(config,"USER_NAME");
-  }
-  if(user_name == NULL){
-    JNX_LOG(0, "[ERROR] You must supply the user name in the configuration. Add USER_NAME=username line to the config file.");
-    exit(1);
+  char *user_name = (char*)jnx_hash_get(config,"USER_NAME");
+  if(NULL == user_name) {
+    user_name = getenv("USER");
+    JNX_LOG(0,"[WARNING] Using the system user name '%s'.", user_name);
   }
   peerstore *ps = peerstore_init(local_peer_for_user(user_name, peer_update_interval), 0);
   char *local_ip = (char *) jnx_hash_get(config, "LOCAL_IP");
