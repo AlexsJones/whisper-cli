@@ -39,7 +39,7 @@ jnx_hashmap *load_config(int argc, char **argv) {
       line. Pass it using --config=PATH_TO_CONFIG_FILE command line option.");
   exit (1);
 }
-int session_auth_comm(session *s, void *optarg) {
+int link_session_protocol(session *s, void *optarg) {
   app_context_t *context = optarg;
 
   jnx_char *default_secure_comms = "6666";
@@ -52,6 +52,10 @@ int session_auth_comm(session *s, void *optarg) {
   auth_comms_initiator_start(context->auth_comms,
       context->discovery,s,default_secure_comms);
   printf("Auth initiator done\n");
+  return 0;
+}
+int unlink_session_protocol(session *s, void *optargs) {
+
   return 0;
 }
 int run_app(app_context_t *context) {
@@ -100,13 +104,26 @@ int run_app(app_context_t *context) {
           session_service_create_session(context->session_serv,&s);
           /* link our peers to our session information */
           session_service_link_sessions(context->session_serv,
-              session_auth_comm,context, 
+              link_session_protocol,context, 
               &s->session_guid,
               local_peer,remote_peer);
 
           printf("Session link hit\n");
           app_create_gui_session(s,context->session_serv);
           printf("Exiting GUI from session.\n");
+        
+        
+          session_state r = session_service_unlink_sessions(context->session_serv,
+          unlink_session_protocol,
+          NULL,
+          &(*s).session_guid);
+  
+          JNXCHECK(r == SESSION_STATE_OKAY);
+          JNXCHECK(session_service_session_is_linked(context->session_serv,
+          &(*s).session_guid) == 0);
+          session_service_destroy_session(context->session_serv,
+          &(*s).session_guid);
+        
         }else {
           printf("Session could not be started.\nDid you spell your target%s",
               " username correctly?\n");
