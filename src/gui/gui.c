@@ -147,13 +147,15 @@ void *read_loop(void *data) {
 }
 void *remote_loop(void *data) {
   gui_context_t *context = (gui_context_t *) data;
-  while(context->s->is_connected) {
+  while(TRUE){
+  if(context->s->is_connected) {
     jnx_char *omessage = NULL;
     jnx_int read = session_message_read(context->s,
         &omessage);  
     if(omessage) {
       display_remote_message(context,omessage);
     }
+  }
   }
   return NULL;
 }
