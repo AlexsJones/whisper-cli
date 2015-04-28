@@ -91,7 +91,8 @@ int run_app(app_context_t *context) {
 
           printf("Session link hit\n");
          
-          sleep(10);
+//          sleep(10); // TODO insert GUI guff here!
+          app_create_gui_session(s, context->session_serv);
 
           session_state r = session_service_unlink_sessions(context->session_serv,
               1,
