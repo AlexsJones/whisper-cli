@@ -22,6 +22,7 @@
 #include <jnxc_headers/jnxthread.h>
 #include <jnxc_headers/jnx_tcp_socket.h>
 #include <jnxc_headers/jnx_udp_socket.h>
+#include <gui/gui.h>
 #include "app.h"
 #include "../gui/gui.h"
 #include "auth_comms.h"
@@ -104,7 +105,10 @@ void app_create_gui_session(session *s,
   gui_context_t *c = gui_create(s,serv);
   pair_session_with_gui(s, (void *)c);
   read_loop((void *)c);
-  read_remote_data_bootstrap((void*)c);
+  jnx_char *message;
+  while (0 < session_message_read(c->s, &message)) {
+    gui_receive_message(c, message);
+  }
   unpair_session_from_gui(s, (void *)c);
 }
 int is_equivalent(char *command, char *expected) {

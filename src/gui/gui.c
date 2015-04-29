@@ -159,7 +159,7 @@ void *remote_loop(void *data) {
   }
   return NULL;
 }
-void gui_receive_message(void *gc, jnx_guid *session_guid, jnx_char *message) {
+void gui_receive_message(void *gc, jnx_char *message) {
   gui_context_t *c = (gui_context_t *) gc;
   if (!c->is_active) {
     return;
