@@ -113,13 +113,12 @@ void app_create_gui_session(session *s,
                             session_service *serv) {
   gui_context_t *c = gui_create(s, serv);
   pair_session_with_gui(s, (void *) c);
-  read_loop((void *) c);
+  jnx_thread_create_disposable(read_loop, (void *) c);
   jnx_char *message;
   while (0 < session_message_read(s, &message)) {
     printf("%s\n", message);
     gui_receive_message(c, message);
   }
-  printf("Read dick!\n");
   unpair_session_from_gui(s, (void *) c);
 }
 
