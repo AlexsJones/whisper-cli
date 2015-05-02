@@ -26,7 +26,7 @@
 #include "app.h"
 #include "../gui/gui.h"
 #include "auth_comms.h"
-
+#include "port_control.h"
 #define END_LISTEN -1
 #define SESSION_INTERACTION "session_interaction"
 #define RECEIVE_GUID "receive_guid"
@@ -296,21 +296,14 @@ int link_session_protocol(session *s, jnx_int is_initiator,void *optarg) {
     case 1:
       printf("Link session protocol for initiator\n");
       app_context_t *context = optarg;
-      jnx_char *default_secure_comms = "6666";
-      jnx_char *secure_comms_port = (jnx_char*)jnx_hash_get(context->config,
-          "SECURE_COMMS_PORT");
-      if(secure_comms_port != NULL) {
-        default_secure_comms = secure_comms_port;
-      }
-      printf("Auth initiator start\n");
+      port_control_service *ps = port_control_service_create(9001,9291,1);
       auth_comms_initiator_start(context->auth_comms,
-          context->discovery,s,default_secure_comms);
+          context->discovery,ps,s);
       printf("Auth initiator done\n");
       break;
     case 0:
       printf("Link session for receiver\n");
       break;
-
   }
   return 0;
 }

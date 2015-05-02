@@ -85,7 +85,7 @@ int run_app(app_context_t *context) {
           session_service_create_session(context->session_serv,&s);
           /* link our peers to our session information */
           session_service_link_sessions(context->session_serv,
-              1,context, 
+              E_AM_INITIATOR,context, 
               &s->session_guid,
               local_peer,remote_peer);
 
@@ -95,7 +95,7 @@ int run_app(app_context_t *context) {
           app_create_gui_session(s, context->session_serv);
 
           session_state r = session_service_unlink_sessions(context->session_serv,
-              1,
+              E_AM_INITIATOR,
           NULL,
           &(*s).session_guid);
   
