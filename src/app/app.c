@@ -21,7 +21,8 @@
 #include <jnxc_headers/jnxterm.h>
 #include <jnxc_headers/jnxthread.h>
 #include <jnxc_headers/jnx_tcp_socket.h>
- #include <jnxc_headers/jnx_udp_socket.h>
+#include <jnxc_headers/jnx_udp_socket.h>
+#include <gui/gui.h>
 #include "app.h"
 #include "../gui/gui.h"
 #include "auth_comms.h"
@@ -104,6 +105,10 @@ void app_create_gui_session(session *s,
   gui_context_t *c = gui_create(s,serv);
   pair_session_with_gui(s, (void *)c);
   read_loop((void *)c);
+  jnx_char *message;
+  while (0 < session_message_read(c->s, &message)) {
+    gui_receive_message(c, message);
+  }
   unpair_session_from_gui(s, (void *)c);
 }
 int is_equivalent(char *command, char *expected) {
@@ -282,16 +287,49 @@ peer *app_peer_from_input(app_context_t *context, char *param) {
   }
   return NULL;
 }
+int link_session_protocol(session *s, jnx_int is_initiator,void *optarg) {
+  printf("---------- link session protocol ------------- \n");
+  /* both the receiving session link and sender will go through here,
+   * it is necessary to differentiate 
+   */
+  switch(is_initiator) {
+    case 1:
+      printf("Link session protocol for initiator\n");
+      app_context_t *context = optarg;
+      jnx_char *default_secure_comms = "6666";
+      jnx_char *secure_comms_port = (jnx_char*)jnx_hash_get(context->config,
+          "SECURE_COMMS_PORT");
+      if(secure_comms_port != NULL) {
+        default_secure_comms = secure_comms_port;
+      }
+      printf("Auth initiator start\n");
+      auth_comms_initiator_start(context->auth_comms,
+          context->discovery,s,default_secure_comms);
+      printf("Auth initiator done\n");
+      break;
+    case 0:
+      printf("Link session for receiver\n");
+      break;
+
+  }
+  return 0;
+}
+int unlink_session_protocol(session *s,jnx_int is_initiator, void *optargs) {
+
+  return 0;
+}
 void set_up_session_service(app_context_t *context){
-  context->session_serv = session_service_create();
+  context->session_serv = session_service_create(link_session_protocol,
+      unlink_session_protocol);
 }
 void set_up_auth_comms(app_context_t *context) {
   context->auth_comms = auth_comms_create();
   context->auth_comms->ar_callback = app_accept_or_reject_session;
   context->auth_comms->listener = jnx_socket_tcp_listener_create("9991",
-    AF_INET,15);
-  
-  auth_comms_listener_start(context->auth_comms,context->discovery,context->session_serv);
+      AF_INET,15);
+
+  auth_comms_listener_start(context->auth_comms,context->discovery,context->session_serv,
+      context);
 }
 app_context_t *app_create_context(jnx_hashmap *config) {
   app_context_t *context = calloc(1, sizeof(app_context_t));
@@ -342,12 +380,9 @@ session *app_accept_chat(app_context_t *context) {
   jnx_unix_socket_destroy(&us);
 
   session *osession = NULL;
-  while (SESSION_STATE_NOT_FOUND 
-      == session_service_fetch_session(context->session_serv,
-            &session_guid, &osession)) {
-    sleep(1);
-  }
-  while (osession->secure_comms_fd == 0) {
+  int is_linked = session_service_session_is_linked(context->session_serv,
+      &session_guid);
+  while (!is_linked) { 
     sleep(1);
   }
   return osession;

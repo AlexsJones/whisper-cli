@@ -43,6 +43,6 @@ char *get_message(gui_context_t *c);
 void display_local_message(gui_context_t *c, char *msg);
 void display_remote_message(gui_context_t *c, char *msg);
 void *read_loop(void *data);
-void gui_receive_message(void *gc, jnx_guid *session_guid, jnx_char *message);
+void gui_receive_message(void *gc, jnx_char *message);
 
 #endif
