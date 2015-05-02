@@ -393,12 +393,12 @@ session *app_accept_chat(app_context_t *context) {
   jnx_unix_stream_socket_listen_with_context(gs, 1, read_guid,
                                              (void *) &session_guid);
   read(us->socket, (void *) &session_guid, sizeof(jnx_guid));
-#ifdef DEBUG
+//#ifdef DEBUG
   char *guid_str;
   jnx_guid_to_string(&session_guid, &guid_str);
   printf("[DEBUG] Received SessionGUID = %s\n", guid_str);
   free(guid_str);
-#endif
+//#endif
   jnx_unix_socket_destroy(&gs);
   jnx_unix_socket_destroy(&us);
 
