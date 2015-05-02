@@ -111,15 +111,16 @@ void unpair_session_from_gui(session *s, void *gui_context) {
 
 void app_create_gui_session(session *s,
                             session_service *serv) {
-//  gui_context_t *c = gui_create(s, serv);
-//  pair_session_with_gui(s, (void *) c);
-//  read_loop((void *) c);
+  gui_context_t *c = gui_create(s, serv);
+  pair_session_with_gui(s, (void *) c);
+  read_loop((void *) c);
   jnx_char *message;
   while (0 < session_message_read(s, &message)) {
     printf("%s\n", message);
-//    gui_receive_message(c, message);
+    gui_receive_message(c, message);
   }
-//  unpair_session_from_gui(s, (void *) c);
+  printf("Read dick!\n");
+  unpair_session_from_gui(s, (void *) c);
 }
 
 int is_equivalent(char *command, char *expected) {
@@ -394,19 +395,19 @@ session *app_accept_chat(app_context_t *context) {
   jnx_unix_stream_socket_listen_with_context(gs, 1, read_guid,
                                              (void *) &session_guid);
   read(us->socket, (void *) &session_guid, sizeof(jnx_guid));
-//#ifdef DEBUG
+#ifdef DEBUG
   char *guid_str;
   jnx_guid_to_string(&session_guid, &guid_str);
   printf("[DEBUG] Received SessionGUID = %s\n", guid_str);
   free(guid_str);
-//#endif
+#endif
   jnx_unix_socket_destroy(&gs);
   jnx_unix_socket_destroy(&us);
 
   session *osession = NULL;
   session_state status = session_service_fetch_session(context->session_serv,
                                                        &session_guid, &osession);
-  while (status != SESSION_STATE_OKAY) {
+  while (1) {
     sleep(1);
     if (!osession) {
       status = session_service_fetch_session(context->session_serv,
@@ -415,6 +416,7 @@ session *app_accept_chat(app_context_t *context) {
     if (osession->secure_socket == -1)
       continue;
     if (secure_comms_is_socket_linked(osession->secure_socket)) {
+      printf("Session is linked on receiver end.\n");
       break;
     }
   }
