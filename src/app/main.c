@@ -106,8 +106,10 @@ int run_app(app_context_t *context) {
           printf("Session link hit\n");
           while (s->secure_socket == -1)
             sleep(1);
+          printf("Secure socket created on the initiator end.\n");
           while(!secure_comms_is_socket_linked(s->secure_socket))
             sleep(1);
+          printf("Secure socket linked on initiator end.\n");
           app_create_gui_session(s, context->session_serv);
 
           session_state r = session_service_unlink_sessions(context->session_serv,
