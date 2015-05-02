@@ -104,7 +104,10 @@ int run_app(app_context_t *context) {
                                         local_peer, remote_peer);
 
           printf("Session link hit\n");
-
+          while (s->secure_socket == -1)
+            sleep(1);
+          while(!secure_comms_is_socket_linked(s->secure_socket))
+            sleep(1);
           app_create_gui_session(s, context->session_serv);
 
           session_state r = session_service_unlink_sessions(context->session_serv,

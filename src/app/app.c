@@ -111,14 +111,15 @@ void unpair_session_from_gui(session *s, void *gui_context) {
 
 void app_create_gui_session(session *s,
                             session_service *serv) {
-  gui_context_t *c = gui_create(s, serv);
-  pair_session_with_gui(s, (void *) c);
-  read_loop((void *) c);
+//  gui_context_t *c = gui_create(s, serv);
+//  pair_session_with_gui(s, (void *) c);
+//  read_loop((void *) c);
   jnx_char *message;
-  while (0 < session_message_read(c->s, &message)) {
-    gui_receive_message(c, message);
+  while (0 < session_message_read(s, &message)) {
+    printf("%s\n", message);
+//    gui_receive_message(c, message);
   }
-  unpair_session_from_gui(s, (void *) c);
+//  unpair_session_from_gui(s, (void *) c);
 }
 
 int is_equivalent(char *command, char *expected) {
@@ -411,7 +412,9 @@ session *app_accept_chat(app_context_t *context) {
       status = session_service_fetch_session(context->session_serv,
                                              &session_guid, &osession);
     }
-    if (osession->is_connected) {
+    if (osession->secure_socket == -1)
+      continue;
+    if (secure_comms_is_socket_linked(osession->secure_socket)) {
       break;
     }
   }
