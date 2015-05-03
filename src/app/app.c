@@ -53,7 +53,7 @@ static int get_session_interaction_path(char *path) {
   return get_tmp_path(path, SESSION_INTERACTION);
 }
 
-static int get_recieve_guid_path(char *path) {
+static int get_receive_guid_path(char *path) {
   return get_tmp_path(path, RECEIVE_GUID);
 }
 
@@ -79,7 +79,7 @@ int app_accept_or_reject_session(discovery_service *ds,
                                  jnx_guid *initiator_guid, jnx_guid *session_guid) {
   char sockpath[128], guidpath[128];
   get_session_interaction_path(sockpath);
-  get_recieve_guid_path(guidpath);
+  get_receive_guid_path(guidpath);
   unlink(sockpath);
   unlink(guidpath);
   jnx_unix_socket *s = jnx_unix_stream_socket_create(sockpath),
@@ -88,14 +88,16 @@ int app_accept_or_reject_session(discovery_service *ds,
   peer *p = peerstore_lookup(ds->peers, initiator_guid);
   printf("You have a chat request from %s. %s",
          p->user_name, "Would you like to accept or reject the chat? [a/r]: ");
-  accept_reject_dto ar;
   fflush(stdout);
+
+  accept_reject_dto ar;
   ar.session_guid = session_guid;
   jnx_unix_stream_socket_listen_with_context(
       s, 1, user_accept_reject, (void *) &ar);
   jnx_unix_stream_socket_send(gs, (void *) session_guid, sizeof(jnx_guid));
   jnx_unix_socket_destroy(&gs);
   jnx_unix_socket_destroy(&s);
+
   return ar.abort;
 }
 
@@ -385,7 +387,7 @@ static jnx_int32 read_guid(jnx_uint8 *buffer, jnx_size bytesread,
 session *app_accept_chat(app_context_t *context) {
   char sockpath[128], guidpath[128];
   get_session_interaction_path(sockpath);
-  get_recieve_guid_path(guidpath);
+  get_receive_guid_path(guidpath);
   jnx_unix_socket *us = jnx_unix_stream_socket_create(sockpath),
       *gs = jnx_unix_stream_socket_create(guidpath);
   jnx_unix_stream_socket_send(us, (jnx_uint8 *) "accept",
