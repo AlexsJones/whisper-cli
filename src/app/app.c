@@ -334,6 +334,7 @@ int link_session_protocol(session *s, linked_session_type lst, void *optarg) {
 
 int unlink_session_protocol(session *s, linked_session_type stype, void *optargs) {
   app_context_t *context = optargs;
+  printf("---------- unlink session protocol ----------- \n");
   auth_comms_stop(context->auth_comms,s);
   return 0;
 }
