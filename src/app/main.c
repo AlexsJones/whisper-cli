@@ -61,14 +61,13 @@ int run_app(app_context_t *context) {
         printf("Exiting GUI from accept.\n");
         session_state r = session_service_unlink_sessions(
             context->session_serv,
-            E_AM_INITIATOR,
+            E_AM_RECEIVER,
             NULL,
             &osession->session_guid);
 
         JNXCHECK(r == SESSION_STATE_OKAY);
         JNXCHECK(session_service_session_is_linked(
-            context->session_serv,
-            &osession->session_guid) == 0);
+            context->session_serv, &osession->session_guid) == 0);
         session_service_destroy_session(
             context->session_serv,
             &osession->session_guid);
@@ -140,11 +139,14 @@ int run_app(app_context_t *context) {
       case CMD_QUIT:
         app_quit_message();
         discovery_notify_peers_of_shutdown(context->discovery);
+        app_destroy_context(&context);
         return 0;
+      default:
+        app_show_help();
+        break;
     }
     free(cmd_string);
   }
-  return 0;
 }
 
 int main(int argc, char **argv) {

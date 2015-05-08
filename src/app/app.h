@@ -24,6 +24,7 @@
 #include <jnxc_headers/jnxunixsocket.h>
 #include "discovery.h"
 #include "auth_comms.h"
+#include "secure_comms.h"
 #include "session_service.h"
 #define CMDLEN 64
 

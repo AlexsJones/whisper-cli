@@ -103,12 +103,12 @@ int app_accept_or_reject_session(discovery_service *ds,
 
 void pair_session_with_gui(session *s, void *gui_context) {
   s->gui_context = gui_context;
-  s->session_callback = gui_receive_message;
+//  s->session_callback = gui_receive_message;
 }
 
 void unpair_session_from_gui(session *s, void *gui_context) {
   s->gui_context = NULL;
-  s->session_callback = NULL;
+//  s->session_callback = NULL;
 }
 
 void app_create_gui_session(session *s,
@@ -117,7 +117,7 @@ void app_create_gui_session(session *s,
   pair_session_with_gui(s, (void *) c);
   jnx_thread_create_disposable(read_loop, (void *) c);
   jnx_char *message;
-  while (0 < session_message_read(s, &message)) {
+  while (0 < session_message_read(s,(jnx_uint8 **) &message)) {
     printf("%s\n", message);
     gui_receive_message(c, message);
   }
@@ -313,13 +313,13 @@ peer *app_peer_from_input(app_context_t *context, char *param) {
   return NULL;
 }
 
-int link_session_protocol(session *s, jnx_int is_initiator, void *optarg) {
+int link_session_protocol(session *s, linked_session_type lst, void *optarg) {
   printf("---------- link session protocol ------------- \n");
   /* both the receiving session link and sender will go through here,
    * it is necessary to differentiate 
    */
-  switch (is_initiator) {
-    case 1:
+  switch (lst) {
+    case E_AM_INITIATOR:
       printf("Link session protocol for initiator\n");
       app_context_t *context = optarg;
       port_control_service *ps = port_control_service_create(9001, 9291, 1);
@@ -327,15 +327,15 @@ int link_session_protocol(session *s, jnx_int is_initiator, void *optarg) {
                                  context->discovery, ps, s);
       printf("Auth initiator done\n");
       break;
-    case 0:
+    case E_AM_RECEIVER:
       printf("Link session for receiver\n");
       break;
   }
   return 0;
 }
 
-int unlink_session_protocol(session *s, jnx_int is_initiator, void *optargs) {
-
+int unlink_session_protocol(session *s, linked_session_type stype, void *optargs) {
+  // Do nothing
   return 0;
 }
 
@@ -360,11 +360,10 @@ app_context_t *app_create_context(jnx_hashmap *config) {
   set_up_discovery_service(context);
   set_up_session_service(context);
   set_up_auth_comms(context);
-  char *broadcast_ip, *local_ip;
   jnx_term_printf_in_color(JNX_COL_GREEN, "Broadcast IP: %s\n",
-                           context->discovery->broadcast_group_address);
+    context->discovery->broadcast_group_address);
   jnx_term_printf_in_color(JNX_COL_GREEN, "Local IP:     %s\n",
-                           peerstore_get_local_peer(context->discovery->peers)->host_address);
+    peerstore_get_local_peer(context->discovery->peers)->host_address);
   return context;
 }
 
