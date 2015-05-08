@@ -155,20 +155,6 @@ void *read_loop(void *data) {
   return NULL;
 }
 
-void *remote_loop(void *data) {
-  gui_context_t *context = (gui_context_t *) data;
-  while (context->s->is_connected) {
-    jnx_char *omessage = NULL;
-    jnx_int read = session_message_read(context->s,(jnx_uint8 **) &omessage);
-
-    if (omessage) {
-      display_remote_message(context, omessage);
-      free(omessage);
-    }
-  }
-  return NULL;
-}
-
 void gui_receive_message(void *gc, jnx_char *message) {
   gui_context_t *c = (gui_context_t *) gc;
   if (!c->is_active) {
@@ -180,10 +166,5 @@ void gui_receive_message(void *gc, jnx_char *message) {
   else {
     display_alert_message(c, message);
   }
-}
-
-void *read_remote_data_bootstrap(void *data) {
-  jnx_thread_create_disposable(remote_loop, data);
-  return NULL;
 }
 
