@@ -116,8 +116,10 @@ void app_create_gui_session(session *s, session_service *serv) {
   pair_session_with_gui(s, (void *) c);
   jnx_thread_create_disposable(read_user_input_loop, (void *) c);
   jnx_char *message;
-  while (0 < session_message_read(s,(jnx_uint8 **) &message)) {
-    gui_receive_message(c, message);
+  while (c->is_active) {
+    if (0 < session_message_read(s, (jnx_uint8 **) &message)) {
+      gui_receive_message(c, message);
+    }
   }
   unpair_session_from_gui(s, (void *) c);
 }
