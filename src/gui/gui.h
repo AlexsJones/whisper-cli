@@ -30,6 +30,7 @@ typedef struct {
 } ui_t;
 
 typedef void(*quit_hint)(void *);
+typedef void* quit_args;
 
 typedef struct {
   ui_t *ui;
@@ -38,10 +39,11 @@ typedef struct {
   char *msg;
   int is_active;
   quit_hint quit_callback;
+  quit_args args;
 } gui_context_t;
 
 gui_context_t *gui_create(
-    session *s, session_service *serv, quit_hint callback);
+    session *s, session_service *serv);
 void gui_destroy(gui_context_t *c);
 char *get_message(gui_context_t *c);
 void display_local_message(gui_context_t *c, char *msg);

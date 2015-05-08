@@ -56,7 +56,7 @@ int run_app(app_context_t *context) {
     switch (app_code_for_command_with_param(cmd_string, read_bytes, &param)) {
       case CMD_ACCEPT_SESSION:
         osession = app_accept_chat(context);
-        app_create_gui_session(osession, context->session_serv);
+        app_create_gui_session(osession, context->session_serv, context);
 
         session_service_destroy_session(
             context->session_serv,

@@ -51,10 +51,9 @@ void app_show_help();
 void app_quit_message();
 int app_code_for_command_with_param(char *command,\
     jnx_size cmd_len, char **oparam);
-void app_create_gui_session(session *s,session_service *serv);
+void app_create_gui_session(session *s, app_context_t *app_context);
 void app_list_active_peers(app_context_t *context);
 peer *app_peer_from_input(app_context_t *context,char *param);
-void app_initiate_handshake(app_context_t *context,session *s);
 int app_accept_or_reject_session(discovery_service *ds,
     jnx_guid *ig, jnx_guid *sg);
 session *app_accept_chat(app_context_t *context);

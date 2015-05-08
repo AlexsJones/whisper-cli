@@ -101,17 +101,13 @@ int app_accept_or_reject_session(discovery_service *ds,
   return ar.abort;
 }
 
-void pair_session_with_gui(session *s, void *gui_context) {
-  s->gui_context = gui_context;
-//  s->session_callback = gui_receive_message;
-}
-
 void unpair_session_from_gui(void *gui_context) {
   gui_context_t *context = (gui_context_t *)gui_context;
+  app_context_t *act = (app_context_t *) context->args;
   context->is_active = 0;
   printf("Exiting GUI from accept.\n");
   session_state r = session_service_unlink_sessions(
-      context->session_serv,
+      act->session_serv,
       E_AM_RECEIVER,
       NULL,
       &context->s->session_guid);
@@ -121,9 +117,19 @@ void unpair_session_from_gui(void *gui_context) {
       context->session_serv, &context->s->session_guid) == 0);
 }
 
-void app_create_gui_session(session *s, session_service *serv) {
-  gui_context_t *c = gui_create(s, serv, unpair_session_from_gui);
-  pair_session_with_gui(s, (void *) c);
+void pair_session_with_gui(session *s, void *gui_context, void *app_context) {
+  s->gui_context = gui_context;
+  gui_context_t *gc = (gui_context_t *) gui_context;
+
+  // Set up quit hint callback
+  gc->quit_callback = unpair_session_from_gui;
+  gc->args = app_context;
+}
+
+void app_create_gui_session(session *s, app_context_t *app_context) {
+  session_service *serv = app_context->session_serv;
+  gui_context_t *c = gui_create(s, serv);
+  pair_session_with_gui(s, (void *) c, (void *) app_context);
   jnx_thread_create_disposable(read_user_input_loop, (void *) c);
   jnx_char *message;
   while (0 < session_message_read(s, (jnx_uint8 **) &message)) {

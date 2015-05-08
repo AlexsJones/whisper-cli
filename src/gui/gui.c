@@ -53,9 +53,13 @@ void display_logo() {
   attroff(COLOR_PAIR(COL_LOGO) | A_BOLD);
   refresh();
 }
-
-gui_context_t *gui_create(
-    session *s, session_service *serv, quit_hint callback) {
+static void missing_callback(void *arg) {
+  printf("You need to set the quit_callback for cleanup in the GUI context.\n");
+  printf("The relevant filds are:\n")
+  printf("[gui_context_t] quit_callback - callback function of type quit_hint\n");
+  printf("[gui_context_t] args - argument of type void* to pass to the quit_callback\n");
+}
+gui_context_t *gui_create(session *s, session_service *serv) {
   gui_context_t *c = malloc(sizeof(gui_context_t));
   ui_t *ui = malloc(sizeof(ui_t));
   initscr();
@@ -75,7 +79,11 @@ gui_context_t *gui_create(
   c->session_serv = serv;
   c->msg = NULL;
   c->is_active = 1;
-  c->quit_callback = callback;
+
+  // These need to be set by the client
+  c->quit_callback = missing_callback;
+  c->args = NULL;
+
   return c;
 }
 
@@ -83,7 +91,7 @@ void gui_destroy(gui_context_t *c) {
   delwin(c->ui->screen);
   delwin(c->ui->prompt);
   endwin();
-  c->quit_callback((void *)c);
+  c->quit_callback(c->args);
 }
 
 char *get_message(gui_context_t *c) {
