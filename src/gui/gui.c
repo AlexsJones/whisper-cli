@@ -132,12 +132,7 @@ void display_alert_message(gui_context_t *c, char *msg) {
   display_message(c->ui, msg, COL_ALERT);
 }
 
-static int unlink_session_protocol(session *s, void *optargs) {
-
-  return 0;
-}
-
-void *read_loop(void *data) {
+void *read_user_input_loop(void *data) {
   gui_context_t *context = (gui_context_t *) data;
   while (TRUE) {
     char *msg = get_message(context);

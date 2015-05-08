@@ -111,11 +111,10 @@ void unpair_session_from_gui(session *s, void *gui_context) {
 //  s->session_callback = NULL;
 }
 
-void app_create_gui_session(session *s,
-                            session_service *serv) {
+void app_create_gui_session(session *s, session_service *serv) {
   gui_context_t *c = gui_create(s, serv);
   pair_session_with_gui(s, (void *) c);
-  jnx_thread_create_disposable(read_loop, (void *) c);
+  jnx_thread_create_disposable(read_user_input_loop, (void *) c);
   jnx_char *message;
   while (0 < session_message_read(s,(jnx_uint8 **) &message)) {
     gui_receive_message(c, message);
@@ -334,7 +333,8 @@ int link_session_protocol(session *s, linked_session_type lst, void *optarg) {
 }
 
 int unlink_session_protocol(session *s, linked_session_type stype, void *optargs) {
-  // Do nothing
+  app_context_t *context = optargs;
+  auth_comms_stop(context->auth_comms,s);
   return 0;
 }
 
