@@ -128,7 +128,6 @@ int run_app(app_context_t *context) {
         app_show_help();
         break;
     }
-    free(cmd_string);
   }
 }
 

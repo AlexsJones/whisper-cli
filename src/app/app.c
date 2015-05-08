@@ -187,7 +187,7 @@ int app_code_for_command_with_param(char *command, jnx_size cmd_len, char **opar
   } else {
     retval = code_for_command(raw_cmd);
   }
-//  free(command);
+  free(command);
   return retval;
 }
 
