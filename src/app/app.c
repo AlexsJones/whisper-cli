@@ -102,6 +102,7 @@ int app_accept_or_reject_session(discovery_service *ds,
 }
 
 void unpair_session_from_gui(void *gui_context) {
+  printf("[DEBUG] Unpairing session from GUI...\n");
   gui_context_t *context = (gui_context_t *)gui_context;
   app_context_t *act = (app_context_t *) context->args;
   context->is_active = 0;
