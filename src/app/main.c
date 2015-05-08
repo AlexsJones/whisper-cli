@@ -53,12 +53,12 @@ int run_app(app_context_t *context) {
     jnx_size s = getline(&cmd_string, &read_bytes, stdin);
     char *param = NULL;
     session *osession;
+    char *guid;
     switch (app_code_for_command_with_param(cmd_string, read_bytes, &param)) {
       case CMD_ACCEPT_SESSION:
         osession = app_accept_chat(context);
-        char *guid;
         jnx_guid_to_string(&osession->session_guid, &guid);
-        printf("[DEBUG] Pairing GUI with session '%s'...", guid);
+        printf("[DEBUG] Pairing GUI with session '%s'...\n", guid);
         app_create_gui_session(osession, context);
 
         session_service_destroy_session(
@@ -102,9 +102,8 @@ int run_app(app_context_t *context) {
           while(!secure_comms_is_socket_linked(s->secure_socket))
             sleep(1);
           printf("Secure socket linked on initiator end.\n");
-          char *guid;
           jnx_guid_to_string(&s->session_guid, &guid);
-          printf("[DEBUG] Pairing GUI with session '%s'...", guid);
+          printf("[DEBUG] Pairing GUI with session '%s'...\n", guid);
           app_create_gui_session(s, context);
 
           session_service_destroy_session(context->session_serv,
