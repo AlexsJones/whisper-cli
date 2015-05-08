@@ -104,12 +104,8 @@ int app_accept_or_reject_session(discovery_service *ds,
 void unpair_session_from_gui(void *gui_context) {
   gui_context_t *context = (gui_context_t *)gui_context;
   app_context_t *act = (app_context_t *) context->args;
-  char *guid;
-  jnx_guid_to_string(&context->s->session_guid, &guid);
-  printf("[DEBUG] Unpairing GUI from session '%s'...\n", guid);
 
   context->is_active = 0;
-  printf("Exiting GUI from accept.\n");
   session_state r = session_service_unlink_sessions(
       act->session_serv,
       E_AM_RECEIVER,
@@ -119,7 +115,6 @@ void unpair_session_from_gui(void *gui_context) {
   JNXCHECK(r == SESSION_STATE_OKAY);
   JNXCHECK(session_service_session_is_linked(
       context->session_serv, &context->s->session_guid) == 0);
-  printf("[DEBUG] Unlinked successfully.\n");
 }
 
 void pair_session_with_gui(session *s, void *gui_context, void *app_context) {
@@ -175,22 +170,25 @@ int code_for_command(char *command) {
 
 int app_code_for_command_with_param(char *command, jnx_size cmd_len, char **oparam) {
   *oparam = NULL;
+  int retval;
   char *raw_cmd = strtok(command, " \n\r\t");
   if (!raw_cmd) {
-    return CMD_HELP;
+    retval = CMD_HELP;
   }
   char *extra_params = strtok(NULL, " \n\r\t");
   if (is_equivalent(raw_cmd, "session")) {
     if (!extra_params) {
       printf("Requires name of peer as argument.\n");
-      return CMD_HELP;
+      retval = CMD_HELP;
     }
     *oparam = malloc(strlen(extra_params) + 1);
     strcpy(*oparam, extra_params);
     return CMD_SESSION;
   } else {
-    return code_for_command(raw_cmd);
+    retval = code_for_command(raw_cmd);
   }
+  free(command);
+  return retval;
 }
 
 void app_prompt() {
