@@ -55,7 +55,7 @@ void display_logo() {
 }
 static void missing_callback(void *arg) {
   printf("You need to set the quit_callback for cleanup in the GUI context.\n");
-  printf("The relevant filds are:\n")
+  printf("The relevant filds are:\n");
   printf("[gui_context_t] quit_callback - callback function of type quit_hint\n");
   printf("[gui_context_t] args - argument of type void* to pass to the quit_callback\n");
 }
