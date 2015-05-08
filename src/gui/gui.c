@@ -157,7 +157,7 @@ void *read_user_input_loop(void *data) {
       }
       else {
         display_alert_message(context, msg);
-        display_alert_message(context, "[Session ended. Type :q to quit.]");
+        display_alert_message(context, "\t[Session ended. Type :q to quit.]");
         break;
       }
     }
