@@ -54,7 +54,8 @@ void display_logo() {
   refresh();
 }
 
-gui_context_t *gui_create(session *s, session_service *serv) {
+gui_context_t *gui_create(
+    session *s, session_service *serv, quit_hint callback) {
   gui_context_t *c = malloc(sizeof(gui_context_t));
   ui_t *ui = malloc(sizeof(ui_t));
   initscr();
@@ -74,6 +75,7 @@ gui_context_t *gui_create(session *s, session_service *serv) {
   c->session_serv = serv;
   c->msg = NULL;
   c->is_active = 1;
+  c->quit_callback = callback;
   return c;
 }
 
@@ -81,7 +83,7 @@ void gui_destroy(gui_context_t *c) {
   delwin(c->ui->screen);
   delwin(c->ui->prompt);
   endwin();
-  c->is_active = 0;
+  c->quit_callback((void *)c);
 }
 
 char *get_message(gui_context_t *c) {
@@ -147,6 +149,7 @@ void *read_user_input_loop(void *data) {
     }
   }
   gui_destroy(context);
+  context->quit_callback(context);
   return NULL;
 }
 

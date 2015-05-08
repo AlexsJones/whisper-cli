@@ -52,22 +52,12 @@ int run_app(app_context_t *context) {
     jnx_size read_bytes;
     jnx_size s = getline(&cmd_string, &read_bytes, stdin);
     char *param = NULL;
-    jnx_vector *active_peers = NULL;
     session *osession;
     switch (app_code_for_command_with_param(cmd_string, read_bytes, &param)) {
       case CMD_ACCEPT_SESSION:
         osession = app_accept_chat(context);
         app_create_gui_session(osession, context->session_serv);
-        printf("Exiting GUI from accept.\n");
-        session_state r = session_service_unlink_sessions(
-            context->session_serv,
-            E_AM_RECEIVER,
-            NULL,
-            &osession->session_guid);
 
-        JNXCHECK(r == SESSION_STATE_OKAY);
-        JNXCHECK(session_service_session_is_linked(
-            context->session_serv, &osession->session_guid) == 0);
         session_service_destroy_session(
             context->session_serv,
             &osession->session_guid);
@@ -111,14 +101,6 @@ int run_app(app_context_t *context) {
           printf("Secure socket linked on initiator end.\n");
           app_create_gui_session(s, context->session_serv);
 
-          session_state r = session_service_unlink_sessions(context->session_serv,
-                                                            E_AM_INITIATOR,
-                                                            NULL,
-                                                            &(*s).session_guid);
-
-          JNXCHECK(r == SESSION_STATE_OKAY);
-          JNXCHECK(session_service_session_is_linked(context->session_serv,
-                                                     &(*s).session_guid) == 0);
           session_service_destroy_session(context->session_serv,
                                           &(*s).session_guid);
 

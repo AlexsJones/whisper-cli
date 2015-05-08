@@ -106,22 +106,29 @@ void pair_session_with_gui(session *s, void *gui_context) {
 //  s->session_callback = gui_receive_message;
 }
 
-void unpair_session_from_gui(session *s, void *gui_context) {
-  s->gui_context = NULL;
-//  s->session_callback = NULL;
+void unpair_session_from_gui(void *gui_context) {
+  gui_context_t *context = (gui_context_t *)gui_context;
+  context->is_active = 0;
+  printf("Exiting GUI from accept.\n");
+  session_state r = session_service_unlink_sessions(
+      context->session_serv,
+      E_AM_RECEIVER,
+      NULL,
+      &context->s->session_guid);
+
+  JNXCHECK(r == SESSION_STATE_OKAY);
+  JNXCHECK(session_service_session_is_linked(
+      context->session_serv, &context->s->session_guid) == 0);
 }
 
 void app_create_gui_session(session *s, session_service *serv) {
-  gui_context_t *c = gui_create(s, serv);
+  gui_context_t *c = gui_create(s, serv, unpair_session_from_gui);
   pair_session_with_gui(s, (void *) c);
   jnx_thread_create_disposable(read_user_input_loop, (void *) c);
   jnx_char *message;
-  while (c->is_active) {
-    if (0 < session_message_read(s, (jnx_uint8 **) &message)) {
+  while (0 < session_message_read(s, (jnx_uint8 **) &message)) {
       gui_receive_message(c, message);
-    }
   }
-  unpair_session_from_gui(s, (void *) c);
 }
 
 int is_equivalent(char *command, char *expected) {

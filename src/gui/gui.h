@@ -29,15 +29,19 @@ typedef struct {
   int next_line;
 } ui_t;
 
+typedef void(*quit_hint)(void *);
+
 typedef struct {
   ui_t *ui;
   session_service *session_serv;
   session *s;
   char *msg;
   int is_active;
+  quit_hint quit_callback;
 } gui_context_t;
 
-gui_context_t *gui_create(session *s,session_service *service);
+gui_context_t *gui_create(
+    session *s, session_service *serv, quit_hint callback);
 void gui_destroy(gui_context_t *c);
 char *get_message(gui_context_t *c);
 void display_local_message(gui_context_t *c, char *msg);
