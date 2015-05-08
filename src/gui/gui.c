@@ -157,7 +157,6 @@ void *read_user_input_loop(void *data) {
     }
   }
   gui_destroy(context);
-  context->quit_callback(context);
   return NULL;
 }
 

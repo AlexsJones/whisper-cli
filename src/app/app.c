@@ -128,12 +128,12 @@ void pair_session_with_gui(session *s, void *gui_context, void *app_context) {
 
 void app_create_gui_session(session *s, app_context_t *app_context) {
   session_service *serv = app_context->session_serv;
-  gui_context_t *c = gui_create(s, serv);
-  pair_session_with_gui(s, (void *) c, (void *) app_context);
-  jnx_thread_create_disposable(read_user_input_loop, (void *) c);
+  gui_context_t *gc = gui_create(s, serv);
+  pair_session_with_gui(s, (void *) gc, (void *) app_context);
+  jnx_thread_create_disposable(read_user_input_loop, (void *) gc);
   jnx_char *message;
   while (0 < session_message_read(s, (jnx_uint8 **) &message)) {
-      gui_receive_message(c, message);
+      gui_receive_message(gc, message);
   }
 }
 
