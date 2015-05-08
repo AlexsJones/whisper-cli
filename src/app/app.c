@@ -116,6 +116,7 @@ void unpair_session_from_gui(void *gui_context) {
   JNXCHECK(r == SESSION_STATE_OKAY);
   JNXCHECK(session_service_session_is_linked(
       context->session_serv, &context->s->session_guid) == 0);
+  printf("[DEBUG] Unlinked successfully.\n");
 }
 
 void pair_session_with_gui(session *s, void *gui_context, void *app_context) {
