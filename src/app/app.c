@@ -123,9 +123,6 @@ void unpair_session_from_gui(void *gui_context) {
 }
 
 void pair_session_with_gui(session *s, void *gui_context, void *app_context) {
-  char *guid;
-  jnx_guid_to_string(&s->session_guid, &guid);
-  printf("[DEBUG] Pairing GUI with session '%s'...", guid);
   s->gui_context = gui_context;
   gui_context_t *gc = (gui_context_t *) gui_context;
 
