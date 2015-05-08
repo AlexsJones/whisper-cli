@@ -27,6 +27,7 @@
 #include "../gui/gui.h"
 #include "auth_comms.h"
 #include "port_control.h"
+#include <unistd.h>
 
 #define END_LISTEN -1
 #define SESSION_INTERACTION "session_interaction"
