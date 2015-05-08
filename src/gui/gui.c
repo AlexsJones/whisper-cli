@@ -91,7 +91,8 @@ void gui_destroy(gui_context_t *c) {
   delwin(c->ui->screen);
   delwin(c->ui->prompt);
   endwin();
-  c->quit_callback(c->args);
+  c->is_active = 0;
+  c->quit_callback(c);
 }
 
 char *get_message(gui_context_t *c) {
