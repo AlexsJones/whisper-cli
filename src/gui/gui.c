@@ -155,6 +155,9 @@ void *read_user_input_loop(void *data) {
       if (SESSION_STATE_OKAY == res) {
         display_local_message(context, msg);
       }
+      else {
+        break;
+      }
     }
   }
   gui_destroy(context);
