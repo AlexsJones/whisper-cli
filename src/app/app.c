@@ -102,9 +102,12 @@ int app_accept_or_reject_session(discovery_service *ds,
 }
 
 void unpair_session_from_gui(void *gui_context) {
-  printf("[DEBUG] Unpairing session from GUI...\n");
   gui_context_t *context = (gui_context_t *)gui_context;
   app_context_t *act = (app_context_t *) context->args;
+  char *guid;
+  jnx_guid_to_string(&context->s->session_guid, &guid);
+  printf("[DEBUG] Unpairing GUI from session '%s'...\n", guid);
+
   context->is_active = 0;
   printf("Exiting GUI from accept.\n");
   session_state r = session_service_unlink_sessions(
@@ -120,6 +123,9 @@ void unpair_session_from_gui(void *gui_context) {
 }
 
 void pair_session_with_gui(session *s, void *gui_context, void *app_context) {
+  char *guid;
+  jnx_guid_to_string(&s->session_guid, &guid);
+  printf("[DEBUG] Pairing GUI with session '%s'...", guid);
   s->gui_context = gui_context;
   gui_context_t *gc = (gui_context_t *) gui_context;
 
