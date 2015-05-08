@@ -140,6 +140,8 @@ void app_create_gui_session(session *s, app_context_t *app_context) {
   while (0 < session_message_read(s, (jnx_uint8 **) &message)) {
       gui_receive_message(gc, message);
   }
+  while (gc->is_active)
+    sleep(1);
 }
 
 int is_equivalent(char *command, char *expected) {
