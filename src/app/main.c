@@ -20,6 +20,7 @@
 #include "whisper_errors.h"
 #include <jnxc_headers/jnxcheck.h>
 #include "app.h"
+#include <jnxc_headers/jnxguid.h>
 
 jnx_hashmap *load_config(int argc, char **argv) {
   if (argc > 1) {
@@ -79,7 +80,7 @@ int run_app(app_context_t *context) {
 
           peer *local_peer = peerstore_get_local_peer(context->discovery->peers);
           if (strcmp(remote_peer->host_address, local_peer->host_address) == 0) {
-            printf("You cannot t a session with yourself.\n");
+            printf("You cannot create a session with yourself.\n");
             break;
           }
           printf("Found peer.\n");
