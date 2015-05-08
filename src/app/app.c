@@ -109,7 +109,7 @@ void unpair_session_from_gui(void *gui_context) {
   session_state r = session_service_unlink_sessions(
       act->session_serv,
       E_AM_RECEIVER,
-      NULL,
+      act,
       &context->s->session_guid);
 
   JNXCHECK(r == SESSION_STATE_OKAY);
