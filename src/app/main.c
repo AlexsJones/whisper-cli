@@ -42,9 +42,6 @@ jnx_hashmap *load_config(int argc, char **argv) {
 }
 
 int run_app(app_context_t *context) {
-  char command[CMDLEN];
-  char *broadcast, *local;
-
   app_intro();
   while (1) {
     app_prompt();
@@ -103,7 +100,7 @@ int run_app(app_context_t *context) {
           app_create_gui_session(s, context);
 
           session_service_destroy_session(context->session_serv,
-                                          &(*s).session_guid);
+                                          &s->session_guid);
 
         } else {
           printf("Session could not be started.\nDid you spell your target%s",
