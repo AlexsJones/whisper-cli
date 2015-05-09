@@ -104,6 +104,7 @@ void gui_destroy(gui_context_t *c) {
 char *get_message(gui_context_t *c) {
   char *msg = malloc(1024);
   if (setjmp(env) == QUIT_REMOTE) {
+    sleep(5);
     print_pthread_t(pthread_self());
     strcpy(msg, ":q");
     c->quit_peer = QUIT_REMOTE;
