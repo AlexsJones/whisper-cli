@@ -136,18 +136,15 @@ void app_create_gui_session(session *s, app_context_t *app_context) {
   pair_session_with_gui(s, (void *) gc, (void *) app_context);
   jnx_thread_create_disposable(read_user_input_loop, (void *) gc);
   jnx_char *message;
-  int retval;
-  while (0 < (retval = session_message_read(s, (jnx_uint8 **) &message))) {
+  while (0 < session_message_read(s, (jnx_uint8 **) &message)) {
     gui_receive_message(gc, message);
   }
-  if (retval == 0) {
-    printf("[DEBUG] Mark it zero!\n");
+  if (QUIT_LOCAL != gc->quit_end) {
+    printf("[DEBUG] Remote session ended.\n");
     longjmp(env, 1);
   }
-  else {
-    while (gc->is_active)
-      sleep(1);
-  }
+  while (gc->is_active)
+    sleep(1);
 }
 
 int is_equivalent(char *command, char *expected) {

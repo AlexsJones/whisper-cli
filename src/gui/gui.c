@@ -84,6 +84,7 @@ gui_context_t *gui_create(session *s, session_service *serv) {
   c->session_serv = serv;
   c->msg = NULL;
   c->is_active = 1;
+  c->quit_end = QUIT_NONE;
 
   // These need to be set by the client
   c->quit_callback = missing_callback;
@@ -109,6 +110,7 @@ char *get_message(gui_context_t *c) {
   }
   else {
     strcpy(msg, ":q");
+    c->quit_end = QUIT_REMOTE;
   }
   return msg;
 }
@@ -158,6 +160,8 @@ void *read_user_input_loop(void *data) {
   while (TRUE) {
     char *msg = get_message(context);
     if (strcmp(msg, ":q") == 0) {
+      if (QUIT_REMOTE != context->quit_end)
+        context->quit_end = QUIT_LOCAL;
       break;
     }
     else {

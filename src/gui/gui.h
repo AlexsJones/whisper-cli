@@ -32,12 +32,19 @@ typedef struct {
 typedef void(*quit_hint)(void *);
 typedef void* quit_args;
 
+typedef enum {
+  QUIT_NONE,
+  QUIT_LOCAL,
+  QUIT_REMOTE
+} quit_enum;
+
 typedef struct {
   ui_t *ui;
   session_service *session_serv;
   session *s;
   char *msg;
   int is_active;
+  quit_enum quit_end;
   quit_hint quit_callback;
   quit_args args;
 } gui_context_t;
