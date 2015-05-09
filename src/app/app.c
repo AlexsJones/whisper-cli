@@ -186,9 +186,11 @@ int app_code_for_command_with_param(char *command, jnx_size cmd_len, char **opar
       printf("Requires name of peer as argument.\n");
       retval = CMD_HELP;
     }
-    *oparam = malloc(strlen(extra_params) + 1);
-    strcpy(*oparam, extra_params);
-    return CMD_SESSION;
+    else {
+      *oparam = malloc(strlen(extra_params) + 1);
+      strcpy(*oparam, extra_params);
+      retval = CMD_SESSION;
+    }
   } else {
     retval = code_for_command(raw_cmd);
   }
