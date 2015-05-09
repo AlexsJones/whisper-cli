@@ -131,16 +131,7 @@ int run_app(app_context_t *context) {
   }
 }
 
-jmp_buf env;
-
-void sigpipe_handler(int sig) {
-  JNXCHECK(sig == SIGPIPE);
-  longjmp(env, 1);
-}
-
 int main(int argc, char **argv) {
-  signal(SIGPIPE, sigpipe_handler);
-
   jnx_hashmap *config = load_config(argc, argv);
   app_context_t *app_context = app_create_context(config);
   run_app(app_context);

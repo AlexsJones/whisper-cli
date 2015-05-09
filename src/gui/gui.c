@@ -20,14 +20,11 @@
 #include <string.h>
 #include <jnxc_headers/jnxthread.h>
 #include <pthread.h>
-#include <setjmp.h>
 
 #define COL_LOGO   1
 #define COL_LOCAL  2
 #define COL_REMOTE 3
 #define COL_ALERT  4
-
-extern jmp_buf env;
 
 void init_colours() {
   if (has_colors() == FALSE) {
@@ -103,8 +100,12 @@ void gui_destroy(gui_context_t *c) {
 char *get_message(gui_context_t *c) {
   char *msg = malloc(1024);
   wmove(c->ui->prompt, 1, 4);
-  wgetstr(c->ui->prompt, msg);
-  show_prompt(c->ui);
+  if (ERR == wgetstr(c->ui->prompt, msg)) {
+    strcpy(msg, ":q");
+  }
+  else {
+    show_prompt(c->ui);
+  }
   return msg;
 }
 
@@ -150,25 +151,21 @@ void display_alert_message(gui_context_t *c, char *msg) {
 
 void *read_user_input_loop(void *data) {
   gui_context_t *context = (gui_context_t *) data;
-  if (0 == setjmp(env)) {
-    while (TRUE) {
-      char *msg = get_message(context);
-      if (strcmp(msg, ":q") == 0) {
-        break;
-      }
-      else {
-        session_state st = session_message_write(context->s,(jnx_uint8 *) msg);
-        if (SESSION_STATE_OKAY == st) {
-          display_local_message(context, msg);
-        }
+  while (TRUE) {
+    char *msg = get_message(context);
+    if (strcmp(msg, ":q") == 0) {
+      break;
+    }
+    else {
+      session_state st = session_message_write(context->s, (jnx_uint8 *) msg);
+      if (SESSION_STATE_OKAY == st) {
+        display_local_message(context, msg);
       }
     }
   }
-  else {
-    display_alert_message(context,
-                          "Session ended. Closing the chat session.");
-    sleep(1);
-  }
+  display_alert_message(context,
+                        "Session ended. Closing the chat session.");
+  sleep(1);
   gui_destroy(context);
   return NULL;
 }
