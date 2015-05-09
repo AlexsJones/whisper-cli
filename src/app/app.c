@@ -277,7 +277,8 @@ static void set_up_discovery_service(app_context_t *context) {
   jnx_hashmap *config = context->config;
   char *user_name = (char *) jnx_hash_get(config, "USER_NAME");
   if (NULL == user_name) {
-    user_name = getenv("USER");
+    user_name = malloc(strlen(getenv("USER")) + 1);
+    strcpy(user_name, getenv("USER"));
     JNX_LOG(0, "[WARNING] Using the system user name '%s'.", user_name);
   }
   peerstore *ps = peerstore_init(local_peer_for_user(user_name, peer_update_interval), 0);
