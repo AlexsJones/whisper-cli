@@ -108,6 +108,7 @@ char *get_message(gui_context_t *c) {
     print_pthread_t(pthread_self());
     strcpy(msg, ":q");
     c->quit_peer = QUIT_REMOTE;
+    sleep(5);
   }
   else {
     wmove(c->ui->prompt, 1, 4);
