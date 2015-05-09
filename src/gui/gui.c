@@ -150,6 +150,8 @@ void *read_user_input_loop(void *data) {
   while (TRUE) {
     char *msg = get_message(context);
     if (context->quit_hint == QUIT_ON_NEXT_USER_INPUT) {
+      session_message_write(
+          context->s, (jnx_uint8 *) "Dummy write to close the connection.");
       break;
     }
     else if (strcmp(msg, ":q") == 0) {
