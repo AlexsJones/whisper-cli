@@ -28,13 +28,10 @@
 #include "auth_comms.h"
 #include "port_control.h"
 #include <unistd.h>
-#include <setjmp.h>
 
 #define END_LISTEN -1
 #define SESSION_INTERACTION "session_interaction"
 #define RECEIVE_GUID "receive_guid"
-
-jmp_buf env;
 
 static int get_tmp_path(char *path, char *filename) {
   int size = 0;
@@ -144,9 +141,7 @@ void app_create_gui_session(session *s, app_context_t *app_context) {
     gui_receive_message(gc, message);
   }
   if (QUIT_LOCAL != gc->quit_peer) {
-    printf("[DEBUG] Remote session ended.\n");
-    print_pthread_t(pthread_self());
-    longjmp(env, QUIT_REMOTE);
+    gc->quit_peer = QUIT_REMOTE;
   }
   pthread_join(user_input_thread->system_thread, NULL);
 }

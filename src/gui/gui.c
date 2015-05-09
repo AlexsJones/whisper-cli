@@ -19,15 +19,11 @@
 #include "gui.h"
 #include <string.h>
 #include <jnxc_headers/jnxthread.h>
-#include <pthread.h>
-#include <setjmp.h>
 
 #define COL_LOGO   1
 #define COL_LOCAL  2
 #define COL_REMOTE 3
 #define COL_ALERT  4
-
-extern jmp_buf env;
 
 void init_colours() {
   if (has_colors() == FALSE) {
@@ -103,18 +99,9 @@ void gui_destroy(gui_context_t *c) {
 
 char *get_message(gui_context_t *c) {
   char *msg = malloc(1024);
-  if (setjmp(env) == QUIT_REMOTE) {
-    sleep(5);
-    print_pthread_t(pthread_self());
-    strcpy(msg, ":q");
-    c->quit_peer = QUIT_REMOTE;
-    sleep(5);
-  }
-  else {
-    wmove(c->ui->prompt, 1, 4);
-    wgetstr(c->ui->prompt, msg);
-    show_prompt(c->ui);
-  }
+  wmove(c->ui->prompt, 1, 4);
+  wgetstr(c->ui->prompt, msg);
+  show_prompt(c->ui);
   return msg;
 }
 
@@ -162,7 +149,10 @@ void *read_user_input_loop(void *data) {
   gui_context_t *context = (gui_context_t *) data;
   while (TRUE) {
     char *msg = get_message(context);
-    if (strcmp(msg, ":q") == 0) {
+    if (context->quit_peer == QUIT_REMOTE) {
+      break;
+    }
+    else if (strcmp(msg, ":q") == 0) {
       if (QUIT_REMOTE != context->quit_peer)
         context->quit_peer = QUIT_LOCAL;
       break;
@@ -194,10 +184,3 @@ void gui_receive_message(void *gc, jnx_char *message) {
   }
 }
 
-void print_pthread_t(pthread_t id) {
-  size_t i;
-  printf("[TID] ");
-  for (i = sizeof(i); i; --i)
-    printf("%02x", *(((unsigned char*) &id) + i - 1));
-  printf("\n");
-}

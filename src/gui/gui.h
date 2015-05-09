@@ -49,8 +49,6 @@ typedef struct {
   quit_args args;
 } gui_context_t;
 
-void print_pthread_t(pthread_t id);
-
 gui_context_t *gui_create(
     session *s, session_service *serv);
 void gui_destroy(gui_context_t *c);
