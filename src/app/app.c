@@ -137,8 +137,8 @@ void app_create_gui_session(session *s, app_context_t *app_context) {
   while (0 < session_message_read(s, (jnx_uint8 **) &message)) {
     gui_receive_message(gc, message);
   }
-  if (QUIT_LOCAL != gc->quit_peer) {
-    gc->quit_peer = QUIT_REMOTE;
+  if (QUIT_NONE == gc->quit_hint) {
+    gc->quit_hint = QUIT_ON_NEXT_USER_INPUT;
   }
   // wait for user input thread to complete
   pthread_join(user_input_thread->system_thread, NULL);

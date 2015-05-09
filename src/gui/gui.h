@@ -34,8 +34,8 @@ typedef void* quit_args;
 
 typedef enum {
   QUIT_NONE,
-  QUIT_LOCAL,
-  QUIT_REMOTE
+  QUIT_IMMEDIATELY,
+  QUIT_ON_NEXT_USER_INPUT
 } quit_enum;
 
 typedef struct {
@@ -44,7 +44,7 @@ typedef struct {
   session *s;
   char *msg;
   int is_active;
-  quit_enum quit_peer;
+  quit_enum quit_hint;
   quit_hint quit_callback;
   quit_args args;
 } gui_context_t;
