@@ -84,7 +84,7 @@ gui_context_t *gui_create(session *s, session_service *serv) {
   c->session_serv = serv;
   c->msg = NULL;
   c->is_active = 1;
-  c->quit_end = QUIT_NONE;
+  c->quit_peer = QUIT_NONE;
 
   // These need to be set by the client
   c->quit_callback = missing_callback;
@@ -103,14 +103,15 @@ void gui_destroy(gui_context_t *c) {
 
 char *get_message(gui_context_t *c) {
   char *msg = malloc(1024);
-  wmove(c->ui->prompt, 1, 4);
-  if (setjmp(env) == 0) {
-    wgetstr(c->ui->prompt, msg);
-    show_prompt(c->ui);
+  if (setjmp(env) == QUIT_REMOTE) {
+    print_pthread_t(pthread_self());
+    strcpy(msg, ":q");
+    c->quit_peer = QUIT_REMOTE;
   }
   else {
-    strcpy(msg, ":q");
-    c->quit_end = QUIT_REMOTE;
+    wmove(c->ui->prompt, 1, 4);
+    wgetstr(c->ui->prompt, msg);
+    show_prompt(c->ui);
   }
   return msg;
 }
@@ -160,8 +161,8 @@ void *read_user_input_loop(void *data) {
   while (TRUE) {
     char *msg = get_message(context);
     if (strcmp(msg, ":q") == 0) {
-      if (QUIT_REMOTE != context->quit_end)
-        context->quit_end = QUIT_LOCAL;
+      if (QUIT_REMOTE != context->quit_peer)
+        context->quit_peer = QUIT_LOCAL;
       break;
     }
     else {
@@ -191,3 +192,10 @@ void gui_receive_message(void *gc, jnx_char *message) {
   }
 }
 
+void print_pthread_t(pthread_t id) {
+  size_t i;
+  printf("[TID] ");
+  for (i = sizeof(i); i; --i)
+    printf("%02x", *(((unsigned char*) &id) + i - 1));
+  printf("\n");
+}

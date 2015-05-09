@@ -44,10 +44,12 @@ typedef struct {
   session *s;
   char *msg;
   int is_active;
-  quit_enum quit_end;
+  quit_enum quit_peer;
   quit_hint quit_callback;
   quit_args args;
 } gui_context_t;
+
+void print_pthread_t(pthread_t id);
 
 gui_context_t *gui_create(
     session *s, session_service *serv);

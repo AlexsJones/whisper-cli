@@ -22,7 +22,7 @@
 #include <jnxc_headers/jnxthread.h>
 #include <jnxc_headers/jnx_tcp_socket.h>
 #include <jnxc_headers/jnx_udp_socket.h>
-#include <gui/gui.h>
+#include "gui/gui.h"
 #include "app.h"
 #include "../gui/gui.h"
 #include "auth_comms.h"
@@ -134,17 +134,20 @@ void app_create_gui_session(session *s, app_context_t *app_context) {
   session_service *serv = app_context->session_serv;
   gui_context_t *gc = gui_create(s, serv);
   pair_session_with_gui(s, (void *) gc, (void *) app_context);
-  jnx_thread_create_disposable(read_user_input_loop, (void *) gc);
+
+  jnx_thread *user_input_thread =
+      jnx_thread_create(read_user_input_loop, (void *) gc);
+  print_pthread_t(user_input_thread->system_thread);
+  
   jnx_char *message;
   while (0 < session_message_read(s, (jnx_uint8 **) &message)) {
     gui_receive_message(gc, message);
   }
-  if (QUIT_LOCAL != gc->quit_end) {
+  if (QUIT_LOCAL != gc->quit_peer) {
     printf("[DEBUG] Remote session ended.\n");
-    longjmp(env, 1);
+    longjmp(env, QUIT_REMOTE);
   }
-  while (gc->is_active)
-    sleep(1);
+  pthread_join(user_input_thread->system_thread, NULL);
 }
 
 int is_equivalent(char *command, char *expected) {
