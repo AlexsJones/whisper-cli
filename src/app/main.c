@@ -21,6 +21,8 @@
 #include <jnxc_headers/jnxcheck.h>
 #include "app.h"
 #include <jnxc_headers/jnxguid.h>
+#include <setjmp.h>
+#include <signal.h>
 
 jnx_hashmap *load_config(int argc, char **argv) {
   if (argc > 1) {
@@ -94,7 +96,7 @@ int run_app(app_context_t *context) {
           while (s->secure_socket == -1)
             sleep(1);
           printf("Secure socket created on the initiator end.\n");
-          while(!secure_comms_is_socket_linked(s->secure_socket))
+          while (!secure_comms_is_socket_linked(s->secure_socket))
             sleep(1);
           printf("Secure socket linked on initiator end.\n");
           app_create_gui_session(s, context);
@@ -128,7 +130,18 @@ int run_app(app_context_t *context) {
   }
 }
 
+jmp_buf env;
+
+void sigpipe_handler(int sig) {
+  signal(SIGPIPE, SIG_IGN);
+  if (sig == SIGPIPE) {
+    printf("[DEBUG] Received SIGPIPE and handling it.\n");
+  }
+  longjmp(env, 1);
+}
+
 int main(int argc, char **argv) {
+  signal(SIGPIPE, sigpipe_handler);
   jnx_hashmap *config = load_config(argc, argv);
   app_context_t *app_context = app_create_context(config);
   run_app(app_context);

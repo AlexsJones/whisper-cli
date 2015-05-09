@@ -20,11 +20,14 @@
 #include <string.h>
 #include <jnxc_headers/jnxthread.h>
 #include <pthread.h>
+#include <setjmp.h>
 
 #define COL_LOGO   1
 #define COL_LOCAL  2
 #define COL_REMOTE 3
 #define COL_ALERT  4
+
+extern jmp_buf env;
 
 void init_colours() {
   if (has_colors() == FALSE) {
@@ -53,12 +56,14 @@ void display_logo() {
   attroff(COLOR_PAIR(COL_LOGO) | A_BOLD);
   refresh();
 }
+
 static void missing_callback(void *arg) {
   printf("You need to set the quit_callback for cleanup in the GUI context.\n");
   printf("The relevant filds are:\n");
   printf("[gui_context_t] quit_callback - callback function of type quit_hint\n");
   printf("[gui_context_t] args - argument of type void* to pass to the quit_callback\n");
 }
+
 gui_context_t *gui_create(session *s, session_service *serv) {
   gui_context_t *c = malloc(sizeof(gui_context_t));
   ui_t *ui = malloc(sizeof(ui_t));
@@ -145,22 +150,24 @@ void display_alert_message(gui_context_t *c, char *msg) {
 
 void *read_user_input_loop(void *data) {
   gui_context_t *context = (gui_context_t *) data;
-  while (TRUE) {
-    char *msg = get_message(context);
-    if (strcmp(msg, ":q") == 0) {
-      break;
-    }
-    else {
-      session_state res = session_message_write(context->s,(jnx_uint8 *) msg);
-      if (SESSION_STATE_OKAY == res) {
-        display_local_message(context, msg);
-      }
-      else {
-        display_alert_message(context, msg);
-        display_alert_message(context, "\t[Session ended. Type :q to quit.]");
+  if (0 == setjmp(env)) {
+    while (TRUE) {
+      char *msg = get_message(context);
+      if (strcmp(msg, ":q") == 0) {
         break;
       }
+      else {
+        session_state st = session_message_write(context->s,(jnx_uint8 *) msg);
+        if (SESSION_STATE_OKAY == st) {
+          display_local_message(context, msg);
+        }
+      }
     }
+  }
+  else {
+    display_alert_message(context,
+                          "Session ended. Closing the chat session.");
+    sleep(1);
   }
   gui_destroy(context);
   return NULL;
