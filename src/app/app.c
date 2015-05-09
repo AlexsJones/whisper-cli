@@ -138,13 +138,14 @@ void app_create_gui_session(session *s, app_context_t *app_context) {
   jnx_thread *user_input_thread =
       jnx_thread_create(read_user_input_loop, (void *) gc);
   print_pthread_t(user_input_thread->system_thread);
-  
+
   jnx_char *message;
   while (0 < session_message_read(s, (jnx_uint8 **) &message)) {
     gui_receive_message(gc, message);
   }
   if (QUIT_LOCAL != gc->quit_peer) {
     printf("[DEBUG] Remote session ended.\n");
+    print_pthread_t(pthread_self());
     longjmp(env, QUIT_REMOTE);
   }
   pthread_join(user_input_thread->system_thread, NULL);
