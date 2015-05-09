@@ -17,12 +17,13 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
+#include <setjmp.h>
+#include <signal.h>
+
 #include "whisper_errors.h"
 #include <jnxc_headers/jnxcheck.h>
 #include "app.h"
 #include <jnxc_headers/jnxguid.h>
-#include <setjmp.h>
-#include <signal.h>
 
 jnx_hashmap *load_config(int argc, char **argv) {
   if (argc > 1) {
@@ -133,15 +134,13 @@ int run_app(app_context_t *context) {
 jmp_buf env;
 
 void sigpipe_handler(int sig) {
-  signal(SIGPIPE, SIG_IGN);
-  if (sig == SIGPIPE) {
-    printf("[DEBUG] Received SIGPIPE and handling it.\n");
-  }
+  JNXCHECK(sig == SIGPIPE);
   longjmp(env, 1);
 }
 
 int main(int argc, char **argv) {
   signal(SIGPIPE, sigpipe_handler);
+
   jnx_hashmap *config = load_config(argc, argv);
   app_context_t *app_context = app_create_context(config);
   run_app(app_context);
