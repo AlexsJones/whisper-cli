@@ -28,10 +28,13 @@
 #include "auth_comms.h"
 #include "port_control.h"
 #include <unistd.h>
+#include <setjmp.h>
 
 #define END_LISTEN -1
 #define SESSION_INTERACTION "session_interaction"
 #define RECEIVE_GUID "receive_guid"
+
+jmp_buf env;
 
 static int get_tmp_path(char *path, char *filename) {
   int size = 0;
@@ -103,7 +106,7 @@ int app_accept_or_reject_session(discovery_service *ds,
 }
 
 void unpair_session_from_gui(void *gui_context) {
-  gui_context_t *context = (gui_context_t *)gui_context;
+  gui_context_t *context = (gui_context_t *) gui_context;
   app_context_t *act = (app_context_t *) context->args;
 
   context->is_active = 0;
@@ -133,11 +136,18 @@ void app_create_gui_session(session *s, app_context_t *app_context) {
   pair_session_with_gui(s, (void *) gc, (void *) app_context);
   jnx_thread_create_disposable(read_user_input_loop, (void *) gc);
   jnx_char *message;
-  while (0 < session_message_read(s, (jnx_uint8 **) &message)) {
-      gui_receive_message(gc, message);
+  int retval;
+  while (0 < (retval = session_message_read(s, (jnx_uint8 **) &message))) {
+    gui_receive_message(gc, message);
   }
-  while (gc->is_active)
-    sleep(1);
+  if (retval == 0) {
+    printf("[DEBUG] Mark it zero!\n");
+    longjmp(env, 1);
+  }
+  else {
+    while (gc->is_active)
+      sleep(1);
+  }
 }
 
 int is_equivalent(char *command, char *expected) {
@@ -356,7 +366,7 @@ int link_session_protocol(session *s, linked_session_type lst, void *optarg) {
 int unlink_session_protocol(session *s, linked_session_type stype, void *optargs) {
   app_context_t *context = optargs;
   printf("---------- unlink session protocol ----------- \n");
-  auth_comms_stop(context->auth_comms,s);
+  auth_comms_stop(context->auth_comms, s);
   return 0;
 }
 
@@ -382,9 +392,9 @@ app_context_t *app_create_context(jnx_hashmap *config) {
   set_up_session_service(context);
   set_up_auth_comms(context);
   jnx_term_printf_in_color(JNX_COL_GREEN, "Broadcast IP: %s\n",
-    context->discovery->broadcast_group_address);
+                           context->discovery->broadcast_group_address);
   jnx_term_printf_in_color(JNX_COL_GREEN, "Local IP:     %s\n",
-    peerstore_get_local_peer(context->discovery->peers)->host_address);
+                           peerstore_get_local_peer(context->discovery->peers)->host_address);
   return context;
 }
 

@@ -20,11 +20,14 @@
 #include <string.h>
 #include <jnxc_headers/jnxthread.h>
 #include <pthread.h>
+#include <setjmp.h>
 
 #define COL_LOGO   1
 #define COL_LOCAL  2
 #define COL_REMOTE 3
 #define COL_ALERT  4
+
+extern jmp_buf env;
 
 void init_colours() {
   if (has_colors() == FALSE) {
@@ -100,11 +103,12 @@ void gui_destroy(gui_context_t *c) {
 char *get_message(gui_context_t *c) {
   char *msg = malloc(1024);
   wmove(c->ui->prompt, 1, 4);
-  if (ERR == wgetstr(c->ui->prompt, msg)) {
-    strcpy(msg, ":q");
+  if (setjmp(env) == 0) {
+    wgetstr(c->ui->prompt, msg);
+    show_prompt(c->ui);
   }
   else {
-    show_prompt(c->ui);
+    strcpy(msg, ":q");
   }
   return msg;
 }
