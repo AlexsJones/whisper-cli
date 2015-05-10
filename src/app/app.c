@@ -22,11 +22,12 @@
 #include <jnxc_headers/jnxthread.h>
 #include <jnxc_headers/jnx_tcp_socket.h>
 #include <jnxc_headers/jnx_udp_socket.h>
-#include <gui/gui.h>
+#include "gui/gui.h"
 #include "app.h"
 #include "../gui/gui.h"
 #include "auth_comms.h"
 #include "port_control.h"
+#include <unistd.h>
 
 #define END_LISTEN -1
 #define SESSION_INTERACTION "session_interaction"
@@ -53,7 +54,7 @@ static int get_session_interaction_path(char *path) {
   return get_tmp_path(path, SESSION_INTERACTION);
 }
 
-static int get_recieve_guid_path(char *path) {
+static int get_receive_guid_path(char *path) {
   return get_tmp_path(path, RECEIVE_GUID);
 }
 
@@ -79,7 +80,7 @@ int app_accept_or_reject_session(discovery_service *ds,
                                  jnx_guid *initiator_guid, jnx_guid *session_guid) {
   char sockpath[128], guidpath[128];
   get_session_interaction_path(sockpath);
-  get_recieve_guid_path(guidpath);
+  get_receive_guid_path(guidpath);
   unlink(sockpath);
   unlink(guidpath);
   jnx_unix_socket *s = jnx_unix_stream_socket_create(sockpath),
@@ -88,38 +89,59 @@ int app_accept_or_reject_session(discovery_service *ds,
   peer *p = peerstore_lookup(ds->peers, initiator_guid);
   printf("You have a chat request from %s. %s",
          p->user_name, "Would you like to accept or reject the chat? [a/r]: ");
-  accept_reject_dto ar;
   fflush(stdout);
+
+  accept_reject_dto ar;
   ar.session_guid = session_guid;
   jnx_unix_stream_socket_listen_with_context(
       s, 1, user_accept_reject, (void *) &ar);
   jnx_unix_stream_socket_send(gs, (void *) session_guid, sizeof(jnx_guid));
   jnx_unix_socket_destroy(&gs);
   jnx_unix_socket_destroy(&s);
+
   return ar.abort;
 }
 
-void pair_session_with_gui(session *s, void *gui_context) {
+void unpair_session_from_gui(void *gui_context) {
+  gui_context_t *context = (gui_context_t *) gui_context;
+  app_context_t *act = (app_context_t *) context->args;
+
+  context->is_active = 0;
+  session_state r = session_service_unlink_sessions(
+      act->session_serv,
+      E_AM_RECEIVER,
+      act,
+      &context->s->session_guid);
+
+  JNXCHECK(r == SESSION_STATE_OKAY);
+  JNXCHECK(session_service_session_is_linked(
+      context->session_serv, &context->s->session_guid) == 0);
+}
+
+void pair_session_with_gui(session *s, void *gui_context, void *app_context) {
   s->gui_context = gui_context;
-  s->session_callback = gui_receive_message;
+  gui_context_t *gc = (gui_context_t *) gui_context;
+
+  // Set up quit hint callback
+  gc->quit_callback = unpair_session_from_gui;
+  gc->args = app_context;
 }
 
-void unpair_session_from_gui(session *s, void *gui_context) {
-  s->gui_context = NULL;
-  s->session_callback = NULL;
-}
-
-void app_create_gui_session(session *s,
-                            session_service *serv) {
-  gui_context_t *c = gui_create(s, serv);
-  pair_session_with_gui(s, (void *) c);
-  jnx_thread_create_disposable(read_loop, (void *) c);
+void app_create_gui_session(session *s, app_context_t *app_context) {
+  session_service *serv = app_context->session_serv;
+  gui_context_t *gc = gui_create(s, serv);
+  pair_session_with_gui(s, (void *) gc, (void *) app_context);
+  jnx_thread *user_input_thread =
+      jnx_thread_create(read_user_input_loop, (void *) gc);
   jnx_char *message;
-  while (0 < session_message_read(s, &message)) {
-    printf("%s\n", message);
-    gui_receive_message(c, message);
+  while (0 < session_message_read(s, (jnx_uint8 **) &message)) {
+    gui_receive_message(gc, message);
   }
-  unpair_session_from_gui(s, (void *) c);
+  if (QUIT_NONE == gc->quit_hint) {
+    gc->quit_hint = QUIT_ON_NEXT_USER_INPUT;
+  }
+  // wait for user input thread to complete
+  pthread_join(user_input_thread->system_thread, NULL);
 }
 
 int is_equivalent(char *command, char *expected) {
@@ -153,22 +175,27 @@ int code_for_command(char *command) {
 
 int app_code_for_command_with_param(char *command, jnx_size cmd_len, char **oparam) {
   *oparam = NULL;
+  int retval;
   char *raw_cmd = strtok(command, " \n\r\t");
   if (!raw_cmd) {
-    return CMD_HELP;
+    retval = CMD_HELP;
   }
   char *extra_params = strtok(NULL, " \n\r\t");
   if (is_equivalent(raw_cmd, "session")) {
     if (!extra_params) {
       printf("Requires name of peer as argument.\n");
-      return CMD_HELP;
+      retval = CMD_HELP;
     }
-    *oparam = malloc(strlen(extra_params) + 1);
-    strcpy(*oparam, extra_params);
-    return CMD_SESSION;
+    else {
+      *oparam = malloc(strlen(extra_params) + 1);
+      strcpy(*oparam, extra_params);
+      retval = CMD_SESSION;
+    }
   } else {
-    return code_for_command(raw_cmd);
+    retval = code_for_command(raw_cmd);
   }
+  free(command);
+  return retval;
 }
 
 void app_prompt() {
@@ -250,7 +277,8 @@ static void set_up_discovery_service(app_context_t *context) {
   jnx_hashmap *config = context->config;
   char *user_name = (char *) jnx_hash_get(config, "USER_NAME");
   if (NULL == user_name) {
-    user_name = getenv("USER");
+    user_name = malloc(strlen(getenv("USER")) + 1);
+    strcpy(user_name, getenv("USER"));
     JNX_LOG(0, "[WARNING] Using the system user name '%s'.", user_name);
   }
   peerstore *ps = peerstore_init(local_peer_for_user(user_name, peer_update_interval), 0);
@@ -311,13 +339,13 @@ peer *app_peer_from_input(app_context_t *context, char *param) {
   return NULL;
 }
 
-int link_session_protocol(session *s, jnx_int is_initiator, void *optarg) {
+int link_session_protocol(session *s, linked_session_type lst, void *optarg) {
   printf("---------- link session protocol ------------- \n");
   /* both the receiving session link and sender will go through here,
    * it is necessary to differentiate 
    */
-  switch (is_initiator) {
-    case 1:
+  switch (lst) {
+    case E_AM_INITIATOR:
       printf("Link session protocol for initiator\n");
       app_context_t *context = optarg;
       port_control_service *ps = port_control_service_create(9001, 9291, 1);
@@ -325,15 +353,17 @@ int link_session_protocol(session *s, jnx_int is_initiator, void *optarg) {
                                  context->discovery, ps, s);
       printf("Auth initiator done\n");
       break;
-    case 0:
+    case E_AM_RECEIVER:
       printf("Link session for receiver\n");
       break;
   }
   return 0;
 }
 
-int unlink_session_protocol(session *s, jnx_int is_initiator, void *optargs) {
-
+int unlink_session_protocol(session *s, linked_session_type stype, void *optargs) {
+  app_context_t *context = optargs;
+  printf("---------- unlink session protocol ----------- \n");
+  auth_comms_stop(context->auth_comms, s);
   return 0;
 }
 
@@ -358,7 +388,6 @@ app_context_t *app_create_context(jnx_hashmap *config) {
   set_up_discovery_service(context);
   set_up_session_service(context);
   set_up_auth_comms(context);
-  char *broadcast_ip, *local_ip;
   jnx_term_printf_in_color(JNX_COL_GREEN, "Broadcast IP: %s\n",
                            context->discovery->broadcast_group_address);
   jnx_term_printf_in_color(JNX_COL_GREEN, "Local IP:     %s\n",
@@ -385,7 +414,7 @@ static jnx_int32 read_guid(jnx_uint8 *buffer, jnx_size bytesread,
 session *app_accept_chat(app_context_t *context) {
   char sockpath[128], guidpath[128];
   get_session_interaction_path(sockpath);
-  get_recieve_guid_path(guidpath);
+  get_receive_guid_path(guidpath);
   jnx_unix_socket *us = jnx_unix_stream_socket_create(sockpath),
       *gs = jnx_unix_stream_socket_create(guidpath);
   jnx_unix_stream_socket_send(us, (jnx_uint8 *) "accept",

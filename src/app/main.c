@@ -17,9 +17,13 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
+#include <setjmp.h>
+#include <signal.h>
+
 #include "whisper_errors.h"
 #include <jnxc_headers/jnxcheck.h>
 #include "app.h"
+#include <jnxc_headers/jnxguid.h>
 
 jnx_hashmap *load_config(int argc, char **argv) {
   if (argc > 1) {
@@ -41,9 +45,6 @@ jnx_hashmap *load_config(int argc, char **argv) {
 }
 
 int run_app(app_context_t *context) {
-  char command[CMDLEN];
-  char *broadcast, *local;
-
   app_intro();
   while (1) {
     app_prompt();
@@ -52,23 +53,12 @@ int run_app(app_context_t *context) {
     jnx_size read_bytes;
     jnx_size s = getline(&cmd_string, &read_bytes, stdin);
     char *param = NULL;
-    jnx_vector *active_peers = NULL;
     session *osession;
     switch (app_code_for_command_with_param(cmd_string, read_bytes, &param)) {
       case CMD_ACCEPT_SESSION:
         osession = app_accept_chat(context);
-        app_create_gui_session(osession, context->session_serv);
-        printf("Exiting GUI from accept.\n");
-        session_state r = session_service_unlink_sessions(
-            context->session_serv,
-            E_AM_INITIATOR,
-            NULL,
-            &osession->session_guid);
+        app_create_gui_session(osession, context);
 
-        JNXCHECK(r == SESSION_STATE_OKAY);
-        JNXCHECK(session_service_session_is_linked(
-            context->session_serv,
-            &osession->session_guid) == 0);
         session_service_destroy_session(
             context->session_serv,
             &osession->session_guid);
@@ -87,7 +77,7 @@ int run_app(app_context_t *context) {
 
           peer *local_peer = peerstore_get_local_peer(context->discovery->peers);
           if (strcmp(remote_peer->host_address, local_peer->host_address) == 0) {
-            printf("You cannot t a session with yourself.\n");
+            printf("You cannot create a session with yourself.\n");
             break;
           }
           printf("Found peer.\n");
@@ -107,21 +97,13 @@ int run_app(app_context_t *context) {
           while (s->secure_socket == -1)
             sleep(1);
           printf("Secure socket created on the initiator end.\n");
-          while(!secure_comms_is_socket_linked(s->secure_socket))
+          while (!secure_comms_is_socket_linked(s->secure_socket))
             sleep(1);
           printf("Secure socket linked on initiator end.\n");
-          app_create_gui_session(s, context->session_serv);
+          app_create_gui_session(s, context);
 
-          session_state r = session_service_unlink_sessions(context->session_serv,
-                                                            E_AM_INITIATOR,
-                                                            NULL,
-                                                            &(*s).session_guid);
-
-          JNXCHECK(r == SESSION_STATE_OKAY);
-          JNXCHECK(session_service_session_is_linked(context->session_serv,
-                                                     &(*s).session_guid) == 0);
           session_service_destroy_session(context->session_serv,
-                                          &(*s).session_guid);
+                                          &s->session_guid);
 
         } else {
           printf("Session could not be started.\nDid you spell your target%s",
@@ -140,11 +122,13 @@ int run_app(app_context_t *context) {
       case CMD_QUIT:
         app_quit_message();
         discovery_notify_peers_of_shutdown(context->discovery);
+        app_destroy_context(&context);
         return 0;
+      default:
+        app_show_help();
+        break;
     }
-    free(cmd_string);
   }
-  return 0;
 }
 
 int main(int argc, char **argv) {

@@ -29,20 +29,33 @@ typedef struct {
   int next_line;
 } ui_t;
 
+typedef void(*quit_hint)(void *);
+typedef void* quit_args;
+
+typedef enum {
+  QUIT_NONE,
+  QUIT_IMMEDIATELY,
+  QUIT_ON_NEXT_USER_INPUT
+} quit_enum;
+
 typedef struct {
   ui_t *ui;
   session_service *session_serv;
   session *s;
   char *msg;
   int is_active;
+  quit_enum quit_hint;
+  quit_hint quit_callback;
+  quit_args args;
 } gui_context_t;
 
-gui_context_t *gui_create(session *s,session_service *service);
+gui_context_t *gui_create(
+    session *s, session_service *serv);
 void gui_destroy(gui_context_t *c);
 char *get_message(gui_context_t *c);
 void display_local_message(gui_context_t *c, char *msg);
 void display_remote_message(gui_context_t *c, char *msg);
-void *read_loop(void *data);
+void *read_user_input_loop(void *data);
 void gui_receive_message(void *gc, jnx_char *message);
 
 #endif

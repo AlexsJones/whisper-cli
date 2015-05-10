@@ -19,7 +19,7 @@
 #include "gui.h"
 #include <string.h>
 #include <jnxc_headers/jnxthread.h>
-#include <pthread.h>
+
 #define COL_LOGO   1
 #define COL_LOCAL  2
 #define COL_REMOTE 3
@@ -37,19 +37,29 @@ void init_colours() {
   init_pair(COL_REMOTE, COLOR_GREEN, COLOR_BLACK);
   init_pair(COL_ALERT, COLOR_YELLOW, COLOR_BLACK);
 }
+
 void show_prompt(ui_t *ui) {
   wmove(ui->prompt, 1, 1);
   wclear(ui->prompt);
   mvwprintw(ui->prompt, 1, 1, "$> ");
   wrefresh(ui->prompt);
 }
+
 void display_logo() {
   attron(COLOR_PAIR(COL_LOGO) | A_BOLD);
-  move(0,0);
+  move(0, 0);
   printw("%s", " Whisper Chat ");
   attroff(COLOR_PAIR(COL_LOGO) | A_BOLD);
   refresh();
 }
+
+static void missing_callback(void *arg) {
+  printf("You need to set the quit_callback for cleanup in the GUI context.\n");
+  printf("The relevant filds are:\n");
+  printf("[gui_context_t] quit_callback - callback function of type quit_hint\n");
+  printf("[gui_context_t] args - argument of type void* to pass to the quit_callback\n");
+}
+
 gui_context_t *gui_create(session *s, session_service *serv) {
   gui_context_t *c = malloc(sizeof(gui_context_t));
   ui_t *ui = malloc(sizeof(ui_t));
@@ -70,21 +80,31 @@ gui_context_t *gui_create(session *s, session_service *serv) {
   c->session_serv = serv;
   c->msg = NULL;
   c->is_active = 1;
+  c->quit_hint = QUIT_NONE;
+
+  // These need to be set by the client
+  c->quit_callback = missing_callback;
+  c->args = NULL;
+
   return c;
 }
+
 void gui_destroy(gui_context_t *c) {
   delwin(c->ui->screen);
   delwin(c->ui->prompt);
   endwin();
   c->is_active = 0;
+  c->quit_callback(c);
 }
-char *get_message(gui_context_t *c){
+
+char *get_message(gui_context_t *c) {
   char *msg = malloc(1024);
   wmove(c->ui->prompt, 1, 4);
   wgetstr(c->ui->prompt, msg);
   show_prompt(c->ui);
   return msg;
 }
+
 void update_next_line(ui_t *ui) {
   int lines, cols;
   getmaxyx(ui->screen, lines, cols);
@@ -97,6 +117,7 @@ void update_next_line(ui_t *ui) {
     ui->next_line = lines;
   }
 }
+
 void display_message(ui_t *ui, char *msg, int col_flag) {
   int row, col;
   getyx(ui->prompt, row, col);
@@ -109,56 +130,48 @@ void display_message(ui_t *ui, char *msg, int col_flag) {
   wmove(ui->prompt, row, col);
   wrefresh(ui->prompt);
 }
+
 void display_local_message(gui_context_t *c, char *msg) {
   display_message(c->ui, msg, COL_LOCAL);
   free(msg);
 }
+
 void display_remote_message(gui_context_t *c, char *msg) {
   display_message(c->ui, msg, COL_REMOTE);
   free(msg);
 }
+
 void display_alert_message(gui_context_t *c, char *msg) {
   display_message(c->ui, msg, COL_ALERT);
 }
-static void gui_unpair_session(gui_context_t *c) {
-  c->s->session_callback = NULL;
-}
-static int unlink_session_protocol(session *s, void *optargs) {
 
-  return 0;
-}
-void *read_loop(void *data) {
+void *read_user_input_loop(void *data) {
   gui_context_t *context = (gui_context_t *) data;
-  while(TRUE) {
+  while (TRUE) {
     char *msg = get_message(context);
-    if (strcmp(msg, ":q") == 0) {
+    if (context->quit_hint == QUIT_ON_NEXT_USER_INPUT) {
+      session_message_write(
+          context->s, (jnx_uint8 *) "Dummy write to close the connection.");
+      break;
+    }
+    else if (strcmp(msg, ":q") == 0) {
+      context->quit_hint = QUIT_IMMEDIATELY;
       break;
     }
     else {
-      session_state res = session_message_write(context->s, msg);
-      if (SESSION_STATE_OKAY == res) {
+      session_state st = session_message_write(context->s, (jnx_uint8 *) msg);
+      if (SESSION_STATE_OKAY == st) {
         display_local_message(context, msg);
       }
     }
   }
-  gui_unpair_session(context);
+  display_alert_message(context,
+                        "Session ended. Closing the chat session.");
+  sleep(1);
   gui_destroy(context);
   return NULL;
 }
-void *remote_loop(void *data) {
-  gui_context_t *context = (gui_context_t *) data;
-  while(TRUE){
-  if(context->s->is_connected) {
-    jnx_char *omessage = NULL;
-    jnx_int read = session_message_read(context->s,
-        &omessage);  
-    if(omessage) {
-      display_remote_message(context,omessage);
-    }
-  }
-  }
-  return NULL;
-}
+
 void gui_receive_message(void *gc, jnx_char *message) {
   gui_context_t *c = (gui_context_t *) gc;
   if (!c->is_active) {
@@ -170,9 +183,5 @@ void gui_receive_message(void *gc, jnx_char *message) {
   else {
     display_alert_message(c, message);
   }
-}
-void *read_remote_data_bootstrap(void* data) {
-  jnx_thread_create_disposable(remote_loop,data);
-  return NULL;
 }
 
