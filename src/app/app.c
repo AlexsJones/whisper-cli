@@ -92,7 +92,8 @@ int app_accept_or_reject_session(discovery_service *ds,
 
   accept_reject_dto ar;
   ar.session_guid = session_guid;
-  jnx_unix_stream_socket_listen_with_context(
+  ar.abort = -1;
+	jnx_unix_stream_socket_listen_with_context(
       s, 1, user_accept_reject, (void *) &ar);
   if (ar.abort == 0) { 
     jnx_unix_socket *gs = jnx_unix_stream_socket_create(guidpath);
