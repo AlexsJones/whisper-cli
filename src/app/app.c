@@ -414,11 +414,13 @@ static jnx_int32 read_guid(jnx_uint8 *buffer, jnx_size bytesread,
 }
 
 session *app_reject_chat(app_context_t *context) {
-  char sockpath[128], guidpath[128];
+  sleep(1);
+  char sockpath[128];
   get_session_interaction_path(sockpath);
   jnx_unix_socket *us = jnx_unix_stream_socket_create(sockpath);
   jnx_unix_stream_socket_send(us, (jnx_uint8 *) "reject",
                               strlen("reject"));
+  jnx_unix_socket_destroy(&us);
   return NULL;
 }
 
@@ -444,13 +446,13 @@ session *app_accept_chat(app_context_t *context) {
   jnx_unix_socket_destroy(&us);
 
   session *osession = NULL;
-  session_state status = session_service_fetch_session(context->session_serv,
-                                                       &session_guid, &osession);
+  session_state status = session_service_fetch_session(
+      context->session_serv, &session_guid, &osession);
   while (1) {
     sleep(1);
     if (!osession) {
-      status = session_service_fetch_session(context->session_serv,
-                                             &session_guid, &osession);
+      status = session_service_fetch_session(
+          context->session_serv, &session_guid, &osession);
     }
     if (osession->secure_socket == -1)
       continue;
