@@ -57,4 +57,5 @@ peer *app_peer_from_input(app_context_t *context,char *param);
 int app_accept_or_reject_session(discovery_service *ds,
     jnx_guid *ig, jnx_guid *sg);
 session *app_accept_chat(app_context_t *context);
+session *app_reject_chat(app_context_t *context);
 #endif // __APP_H__
