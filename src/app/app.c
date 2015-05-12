@@ -271,12 +271,13 @@ int link_session_protocol(session *s, linked_session_type lst, void *optarg) {
   /* both the receiving session link and sender will go through here,
    * it is necessary to differentiate 
    */
+  int r = 0;
   switch (lst) {
     case E_AM_INITIATOR:
       printf("Link session protocol for initiator\n");
       app_context_t *context = optarg;
       port_control_service *ps = port_control_service_create(9001, 9291, 1);
-      auth_comms_initiator_start(context->auth_comms,
+      r = auth_comms_initiator_start(context->auth_comms,
                                  context->discovery, ps, s);
       printf("Auth initiator done\n");
       break;
@@ -284,7 +285,7 @@ int link_session_protocol(session *s, linked_session_type lst, void *optarg) {
       printf("Link session for receiver\n");
       break;
   }
-  return 0;
+  return r;
 }
 
 int unlink_session_protocol(session *s, linked_session_type stype, void *optargs) {

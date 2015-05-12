@@ -90,23 +90,23 @@ int run_app(app_context_t *context) {
           /* create session */
           session_service_create_session(context->session_serv, &s);
           /* link our peers to our session information */
-          session_service_link_sessions(context->session_serv,
+          if (SESSION_STATE_OKAY == session_service_link_sessions(context->session_serv,
                                         E_AM_INITIATOR, context,
                                         &s->session_guid,
-                                        local_peer, remote_peer);
+                                        local_peer, remote_peer)) {
 
-          printf("Session link hit\n");
-          while (s->secure_socket == -1)
-            sleep(1);
-          printf("Secure socket created on the initiator end.\n");
-          while (!secure_comms_is_socket_linked(s->secure_socket))
-            sleep(1);
-          printf("Secure socket linked on initiator end.\n");
-          app_create_gui_session(s, context);
+            printf("Session link hit\n");
+            while (s->secure_socket == -1)
+              sleep(1);
+            printf("Secure socket created on the initiator end.\n");
+            while (!secure_comms_is_socket_linked(s->secure_socket))
+              sleep(1);
+            printf("Secure socket linked on initiator end.\n");
+            app_create_gui_session(s, context);
 
-          session_service_destroy_session(context->session_serv,
-                                          &s->session_guid);
-
+            session_service_destroy_session(context->session_serv,
+                                            &s->session_guid);
+          }
         } else {
           printf("Session could not be started.\nDid you spell your target%s",
                  " username correctly?\n");
