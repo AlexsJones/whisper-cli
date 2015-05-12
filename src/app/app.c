@@ -105,7 +105,7 @@ int app_code_for_command_with_param(char *command, jnx_size cmd_len, char **opar
   int retval;
   char *raw_cmd = strtok(command, " \n\r\t");
   if (!raw_cmd) {
-    retval = CMD_HELP;
+    return CMD_HELP;
   }
   char *extra_params = strtok(NULL, " \n\r\t");
   if (is_equivalent(raw_cmd, "session")) {
