@@ -1,3 +1,4 @@
+*.log
 whisper-cli
 .DS_Store
 install_manifest.txt
