@@ -134,6 +134,7 @@ int run_app(app_context_t *context) {
 }
 
 int main(int argc, char **argv) {
+  JNXLOG_CREATE("logger.conf");
   jnx_hashmap *config = load_config(argc, argv);
   app_context_t *app_context = app_create_context(config);
   run_app(app_context);

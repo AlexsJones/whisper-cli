@@ -278,7 +278,8 @@ int link_session_protocol(session *s, linked_session_type lst, void *optarg) {
       app_context_t *context = optarg;
       port_control_service *ps = port_control_service_create(9001, 9291, 1);
       r = auth_comms_initiator_start(context->auth_comms,
-                                 context->discovery, ps, s);
+                                 context->discovery, ps, s, 
+                                 "THIS IS A PLACEHOLDER LINE 282 app.c");
       printf("Auth initiator done\n");
       break;
     case E_AM_RECEIVER:
