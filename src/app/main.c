@@ -73,8 +73,6 @@ int run_app(app_context_t *context) {
           break;
         }
 
-        char *session_message = app_get_session_message();
-
         peer *remote_peer = app_peer_from_input(context, param);
         if (remote_peer) {
           peer *local_peer = peerstore_get_local_peer(context->discovery->peers);
@@ -82,6 +80,9 @@ int run_app(app_context_t *context) {
             printf("You cannot create a session with yourself.\n");
             break;
           }
+
+          char *session_message = app_get_session_message();
+
           printf("Found peer.\n");
           /*
            * Version 1.0
