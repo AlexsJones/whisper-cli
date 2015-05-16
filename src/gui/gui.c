@@ -45,10 +45,15 @@ void show_prompt(ui_t *ui) {
   wrefresh(ui->prompt);
 }
 
-void display_logo() {
+void display_logo(jnx_int *topic) {
   attron(COLOR_PAIR(COL_LOGO) | A_BOLD);
   move(0, 0);
-  printw("%s", " Whisper Chat ");
+  if (topic) {
+    printw(" %s - %s ", "Whisper Chat", topic);
+  }
+  else {
+    printw(" %s ", "Whisper Chat");
+  }
   attroff(COLOR_PAIR(COL_LOGO) | A_BOLD);
   refresh();
 }
@@ -65,7 +70,7 @@ gui_context_t *gui_create(session *s, session_service *serv) {
   ui_t *ui = malloc(sizeof(ui_t));
   initscr();
   init_colours();
-  display_logo();
+  display_logo(s->initiator_message);
   ui->screen = newwin(LINES - 6, COLS - 1, 1, 1);
   scrollok(ui->screen, TRUE);
   box(ui->screen, 0, 0);

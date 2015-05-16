@@ -198,6 +198,22 @@ void app_quit_message() {
   printf("Shutting down 'whisper'...\n");
 }
 
+char *app_get_session_message() {
+  char *session_message = NULL;
+  size_t message_size = 0;
+
+  printf("Set the chat topic or hit Enter for none: ");
+  fflush(stdout);
+  getline(&session_message, &message_size, stdin);
+
+  if (strcmp("\n", session_message)) {
+    return NULL;
+  }
+  else {
+    session_message[strlen(session_message) - 1] = '\0';
+    return session_message;
+  }
+}
 extern int peer_update_interval;
 
 static void set_up_discovery_service(app_context_t *context) {
@@ -278,8 +294,8 @@ int link_session_protocol(session *s, linked_session_type lst, void *optarg) {
       app_context_t *context = optarg;
       port_control_service *ps = port_control_service_create(9001, 9291, 1);
       r = auth_comms_initiator_start(context->auth_comms,
-                                 context->discovery, ps, s, 
-                                 "THIS IS A PLACEHOLDER LINE 282 app.c");
+                                 context->discovery, ps, s,
+                                 s->initiator_message);
       printf("Auth initiator done\n");
       break;
     case E_AM_RECEIVER:

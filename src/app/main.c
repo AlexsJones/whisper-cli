@@ -73,10 +73,10 @@ int run_app(app_context_t *context) {
           break;
         }
 
+        char *session_message = app_get_session_message();
+
         peer *remote_peer = app_peer_from_input(context, param);
-
         if (remote_peer) {
-
           peer *local_peer = peerstore_get_local_peer(context->discovery->peers);
           if (strcmp(remote_peer->host_address, local_peer->host_address) == 0) {
             printf("You cannot create a session with yourself.\n");
@@ -89,6 +89,8 @@ int run_app(app_context_t *context) {
           session *s;
           /* create session */
           session_service_create_session(context->session_serv, &s);
+          s->initiator_message = (jnx_uint8*) session_message;
+
           /* link our peers to our session information */
           if (SESSION_STATE_OKAY == session_service_link_sessions(context->session_serv,
                                         E_AM_INITIATOR, context,

@@ -40,6 +40,7 @@ void app_intro();
 void app_prompt();
 void app_show_help();
 void app_quit_message();
+char *app_get_session_message();
 int app_code_for_command_with_param(char *command, jnx_size cmd_len,
     char **oparam);
 void app_create_gui_session(session *s, app_context_t *app_context);
