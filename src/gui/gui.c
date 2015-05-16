@@ -69,6 +69,7 @@ gui_context_t *gui_create(session *s, session_service *serv) {
   ui_t *ui = malloc(sizeof(ui_t));
   initscr();
   init_colours();
+  clear();
   display_logo();
   if (s->initiator_message) {
     display_chat_topic((char *) s->initiator_message);
