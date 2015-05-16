@@ -45,11 +45,11 @@ void show_prompt(ui_t *ui) {
   wrefresh(ui->prompt);
 }
 
-void display_logo(jnx_int *topic) {
+void display_logo(jnx_uint8 *topic) {
   attron(COLOR_PAIR(COL_LOGO) | A_BOLD);
   move(0, 0);
   if (topic) {
-    printw(" %s - %s ", "Whisper Chat", topic);
+    printw(" %s - %s ", "Whisper Chat", (char *) topic);
   }
   else {
     printw(" %s ", "Whisper Chat");
