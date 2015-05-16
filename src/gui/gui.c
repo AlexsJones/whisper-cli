@@ -68,6 +68,7 @@ gui_context_t *gui_create(session *s, session_service *serv) {
   display_logo();
   if (s->initiator_message) {
     printw((char *) s->initiator_message);
+    refresh();
   }
   ui->screen = newwin(LINES - 6, COLS - 1, 1, 1);
   scrollok(ui->screen, TRUE);
