@@ -70,7 +70,6 @@ gui_context_t *gui_create(session *s, session_service *serv) {
   initscr();
   init_colours();
   display_logo();
-  display_chat_topic(s->initiator_message);
   if (s->initiator_message) {
     display_chat_topic((char *) s->initiator_message);
   }
