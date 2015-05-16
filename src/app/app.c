@@ -206,7 +206,7 @@ char *app_get_session_message() {
   fflush(stdout);
   getline(&session_message, &message_size, stdin);
 
-  if (strcmp("\n", session_message)) {
+  if (strcmp("\n", session_message) == 0) {
     return NULL;
   }
   else {
