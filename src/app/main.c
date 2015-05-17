@@ -57,7 +57,7 @@ int run_app(app_context_t *context) {
     switch (app_code_for_command_with_param(cmd_string, read_bytes, &param)) {
       case CMD_ACCEPT_SESSION:
         osession = app_accept_chat(context);
-        app_create_gui_session(osession, context);
+        app_start_gui_for_session(osession, context);
 
         session_service_destroy_session(
             context->session_serv,
@@ -105,7 +105,7 @@ int run_app(app_context_t *context) {
             while (!secure_comms_is_socket_linked(s->secure_socket))
               sleep(1);
             printf("Secure socket linked on initiator end.\n");
-            app_create_gui_session(s, context);
+            app_start_gui_for_session(s, context);
 
             session_service_destroy_session(context->session_serv,
                                             &s->session_guid);
