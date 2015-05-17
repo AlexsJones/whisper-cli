@@ -34,9 +34,6 @@
 #define CMD_ACCEPT_SESSION 5
 #define CMD_REJECT_SESSION 6
 
-app_context_t *app_create_context(jnx_hashmap *config);
-void app_destroy_context(app_context_t **app_context);
-
 void app_intro();
 void app_prompt();
 void app_show_help();
@@ -44,7 +41,6 @@ void app_quit_message();
 char *app_get_session_message();
 int app_code_for_command_with_param(char *command, jnx_size cmd_len,
     char **oparam);
-void app_list_active_peers(app_context_t *context);
-peer *app_peer_from_input(app_context_t *context,char *param);
+
 
 #endif // __APP_H__

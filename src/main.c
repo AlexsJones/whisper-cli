@@ -22,7 +22,7 @@
 
 #include "whisper_errors.h"
 #include <jnxc_headers/jnxcheck.h>
-#include "app.h"
+#include "app_cli.h"
 #include <jnxc_headers/jnxguid.h>
 
 jnx_hashmap *load_config(int argc, char **argv) {
