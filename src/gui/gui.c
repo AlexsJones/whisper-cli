@@ -48,7 +48,7 @@ void show_prompt(ui_t *ui) {
 void display_logo() {
   attron(COLOR_PAIR(COL_LOGO) | A_BOLD);
   move(0, 0);
-  printw("%s", " Whisper Chat ");
+  printw(" %s ", "Whisper Chat");
   attroff(COLOR_PAIR(COL_LOGO) | A_BOLD);
   refresh();
 }
@@ -59,13 +59,21 @@ static void missing_callback(void *arg) {
   printf("[gui_context_t] quit_callback - callback function of type quit_hint\n");
   printf("[gui_context_t] args - argument of type void* to pass to the quit_callback\n");
 }
-
+static void display_chat_topic(char *topic) {
+  move(0, 16);
+  printw(topic);
+  refresh();
+}
 gui_context_t *gui_create(session *s, session_service *serv) {
   gui_context_t *c = malloc(sizeof(gui_context_t));
   ui_t *ui = malloc(sizeof(ui_t));
   initscr();
   init_colours();
+  clear();
   display_logo();
+  if (s->initiator_message) {
+    display_chat_topic((char *) s->initiator_message);
+  }
   ui->screen = newwin(LINES - 6, COLS - 1, 1, 1);
   scrollok(ui->screen, TRUE);
   box(ui->screen, 0, 0);

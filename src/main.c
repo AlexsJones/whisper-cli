@@ -17,13 +17,8 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
-#include <setjmp.h>
-#include <signal.h>
-
-#include "whisper_errors.h"
 #include <jnxc_headers/jnxcheck.h>
-#include "app.h"
-#include <jnxc_headers/jnxguid.h>
+#include "app/app_cli.h"
 
 jnx_hashmap *load_config(int argc, char **argv) {
   if (argc > 1) {
@@ -57,7 +52,7 @@ int run_app(app_context_t *context) {
     switch (app_code_for_command_with_param(cmd_string, read_bytes, &param)) {
       case CMD_ACCEPT_SESSION:
         osession = app_accept_chat(context);
-        app_create_gui_session(osession, context);
+        app_start_gui_for_session(osession, context);
 
         session_service_destroy_session(
             context->session_serv,
@@ -74,14 +69,15 @@ int run_app(app_context_t *context) {
         }
 
         peer *remote_peer = app_peer_from_input(context, param);
-
         if (remote_peer) {
-
           peer *local_peer = peerstore_get_local_peer(context->discovery->peers);
           if (strcmp(remote_peer->host_address, local_peer->host_address) == 0) {
             printf("You cannot create a session with yourself.\n");
             break;
           }
+
+          char *session_message = app_get_session_message();
+
           printf("Found peer.\n");
           /*
            * Version 1.0
@@ -89,6 +85,8 @@ int run_app(app_context_t *context) {
           session *s;
           /* create session */
           session_service_create_session(context->session_serv, &s);
+          s->initiator_message = (jnx_uint8*) session_message;
+
           /* link our peers to our session information */
           if (SESSION_STATE_OKAY == session_service_link_sessions(context->session_serv,
                                         E_AM_INITIATOR, context,
@@ -102,7 +100,7 @@ int run_app(app_context_t *context) {
             while (!secure_comms_is_socket_linked(s->secure_socket))
               sleep(1);
             printf("Secure socket linked on initiator end.\n");
-            app_create_gui_session(s, context);
+            app_start_gui_for_session(s, context);
 
             session_service_destroy_session(context->session_serv,
                                             &s->session_guid);

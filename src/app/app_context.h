@@ -31,4 +31,10 @@ typedef struct {
   auth_comms_service *auth_comms;
 } app_context_t;
 
+app_context_t *app_create_context(jnx_hashmap *config);
+void app_destroy_context(app_context_t **app_context);
+
+void app_list_active_peers(app_context_t *context);
+peer *app_peer_from_input(app_context_t *context,char *param);
+
 #endif // __APP_CONTEXT_H__
