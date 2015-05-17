@@ -25,8 +25,6 @@
 #include "app_auth_callbacks.h"
 #include "app_gui_bindings.h"
 
-#define CMDLEN 64
-
 #define CMD_SESSION 1
 #define CMD_LIST    2
 #define CMD_HELP    3

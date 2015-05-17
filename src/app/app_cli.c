@@ -24,10 +24,11 @@
 #include <jnxc_headers/jnx_udp_socket.h>
 #include "gui/gui.h"
 #include "app_cli.h"
-#include "../gui/gui.h"
 #include "auth_comms.h"
 #include "port_control.h"
 #include <unistd.h>
+#include "app_gui_bindings.h"
+
 
 int is_equivalent(char *command, char *expected) {
   if (strcmp(command, expected) == 0) {
@@ -91,21 +92,6 @@ void app_prompt() {
   fflush(stdout);
 }
 
-static void pretty_print_peer(peer *p) {
-  char *guid;
-  jnx_guid_to_string(&p->guid, &guid);
-  printf("%-32s %-16s %s\n", guid, p->host_address, p->user_name);
-  free(guid);
-}
-
-static void pretty_print_peer_in_col(peer *p, jnx_int32 colour) {
-  char *guid;
-  jnx_guid_to_string(&p->guid, &guid);
-  jnx_term_printf_in_color(colour,
-                           "%-32s %-16s %s\n", guid, p->host_address, p->user_name);
-  free(guid);
-}
-
 void app_intro() {
   printf("\n");
   printf("Welcome to Whisper Chat\n");
@@ -144,6 +130,3 @@ char *app_get_session_message() {
     return session_message;
   }
 }
-
-
-

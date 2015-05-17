@@ -22,13 +22,13 @@ include_directories(src)
 include_directories("whisper-core/whisper-core")
 
 if(NOT DEBUG)
-  add_executable(whisper-cli ${SRC})
+  add_executable(whisper-cli src/main.c ${SRC})
   target_link_libraries(whisper-cli -ljnxc -lcrypto -lssl -g -lprotobuf-c
     -lncurses -lpthread -lwhisper-core)
 else()
   add_definitions("-g")
   file(GLOB CORE_SRC "whisper-core/src/**/*.c")
-  add_executable(whisper-cli ${SRC} ${CORE_SRC})
+  add_executable(whisper-cli src/main.c ${SRC} ${CORE_SRC})
   target_link_libraries(whisper-cli -ljnxc -lcrypto -lssl -g -lprotobuf-c
     -lncurses -lpthread)
 endif()

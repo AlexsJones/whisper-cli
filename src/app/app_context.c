@@ -16,7 +16,9 @@
  * =====================================================================================
  */
 #include <stdlib.h>
+#include <jnxc_headers/jnxterm.h>
 #include "app_context.h"
+#include "app_auth_callbacks.h"
 
 extern int peer_update_interval;
 
@@ -130,6 +132,25 @@ void app_destroy_context(app_context_t **context) {
   auth_comms_destroy(&(*context)->auth_comms);
   free(*context);
   *context = NULL;
+}
+
+/**********************************/
+/* discovery_service interactions */
+/**********************************/
+
+static void pretty_print_peer(peer *p) {
+  char *guid;
+  jnx_guid_to_string(&p->guid, &guid);
+  printf("%-32s %-16s %s\n", guid, p->host_address, p->user_name);
+  free(guid);
+}
+
+static void pretty_print_peer_in_col(peer *p, jnx_int32 colour) {
+  char *guid;
+  jnx_guid_to_string(&p->guid, &guid);
+  jnx_term_printf_in_color(colour,
+                           "%-32s %-16s %s\n", guid, p->host_address, p->user_name);
+  free(guid);
 }
 
 static void show_active_peers(peerstore *ps) {

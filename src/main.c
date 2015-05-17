@@ -17,13 +17,8 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
-#include <setjmp.h>
-#include <signal.h>
-
-#include "whisper_errors.h"
 #include <jnxc_headers/jnxcheck.h>
-#include "app_cli.h"
-#include <jnxc_headers/jnxguid.h>
+#include "app/app_cli.h"
 
 jnx_hashmap *load_config(int argc, char **argv) {
   if (argc > 1) {

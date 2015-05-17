@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 #include "app_gui_bindings.h"
+#include "gui/gui.h"
 
 void unpair_session_from_gui(void *gui_context) {
   gui_context_t *context = (gui_context_t *) gui_context;
@@ -44,7 +45,7 @@ void pair_session_with_gui(session *s, void *gui_context, void *app_context) {
   gc->args = app_context;
 }
 
-void app_create_gui_session(session *s, app_context_t *app_context) {
+void app_start_gui_for_session(session *s, app_context_t *app_context) {
   session_service *serv = app_context->session_serv;
   gui_context_t *gc = gui_create(s, serv);
   pair_session_with_gui(s, (void *) gc, (void *) app_context);
