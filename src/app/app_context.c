@@ -28,7 +28,7 @@ static void set_up_discovery_service(app_context_t *context) {
   if (NULL == user_name) {
     user_name = malloc(strlen(getenv("USER")) + 1);
     strcpy(user_name, getenv("USER"));
-    JNX_LOG(0, "[WARNING] Using the system user name '%s'.", user_name);
+    JNXLOG(LWARN, "Using the system user name '%s'.", user_name);
   }
   peerstore *ps = peerstore_init(local_peer_for_user(user_name, peer_update_interval), 0);
   char *local_ip = (char *) jnx_hash_get(config, "LOCAL_IP");
@@ -57,12 +57,12 @@ static void set_up_discovery_service(app_context_t *context) {
 
   char *discovery_strategy = (char *) jnx_hash_get(config, "DISCOVERY_STRATEGY");
   if (NULL == discovery_strategy) {
-    JNX_LOG(0, "Starting discovery service with heartbeat srategy.");
+    JNXLOG(LDEBUG, "Starting discovery service with heartbeat srategy.");
     discovery_service_start(context->discovery, BROADCAST_UPDATE_STRATEGY);
   }
   else {
     if (0 == strcmp(discovery_strategy, "polling")) {
-      JNX_LOG(0, "Starting discovery service with polling srategy.");
+      JNXLOG(LDEBUG, "Starting discovery service with polling srategy.");
       discovery_service_start(context->discovery, POLLING_UPDATE_STRATEGY);
     }
   }
