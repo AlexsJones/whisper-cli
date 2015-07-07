@@ -7,6 +7,8 @@
 ---
 ##For Developers
 
+[![Join the chat at https://gitter.im/AlexsJones/whisper-cli](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/AlexsJones/whisper-cli?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 
 This project is for building of command line whisper interface. 
 It builds on the whisper-core library.
